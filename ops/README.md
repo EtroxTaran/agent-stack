@@ -1,7 +1,20 @@
-# ops — Discord Bot + ops-n8n + Tailscale Funnel
+# ops — Discord Bot + n8n Bridge + Tailscale Funnel
 
 Dieser Ordner enthält die vollständige Infrastructure-as-Code für den **Nathan Ops Discord Bot**:
 der Messaging-Bus für die AI-Review-Pipeline.
+
+> **Aktueller Deployment-Modus: CONSOLIDATED (seit 2026-04-20)**
+>
+> Die AI-Review-Workflows leben in der **bestehenden `ai-portal-n8n`** (Port 5678),
+> nicht in einem separaten ops-n8n-Container. Rationale:
+>
+> - r2d2 ist small home-server — doppelte n8n-Instanzen = unnötige Ops-Kosten
+> - 2-User-Family-Setup: Blast-Radius-Argumente weniger kritisch als Einfachheit
+> - n8n Tags/Folders reichen für Soft-Separation innerhalb einer Instanz
+> - Wörkflows in ai-portal-n8n bereits importiert + aktiviert
+>
+> Die `n8n/docker-compose.yml` bleibt als **optionaler Fallback** dokumentiert, falls
+> eine saubere Container-Trennung später doch nötig wird.
 
 ---
 
@@ -26,9 +39,13 @@ ops/
         └── backup-ops-n8n.sh   Wöchentliches Backup (cron-kompatibel)
 ```
 
-**Trennung von ai-portal-n8n:**
-- `ai-portal-n8n` (Port 5678): Business-Workflows (Finance, Research, Email). Bleibt unverändert.
-- `ops-n8n` (Port 5679): Ausschließlich AI-Review Messaging-Bridge. Teil von `agent-stack`.
+**Aktueller Setup (CONSOLIDATED):**
+- `ai-portal-n8n` (Port 5678): Business-Workflows (Finance, Research, Email) **+ AI-Review-Bridge**
+- AI-Review-Workflows tragen `[AI-Review]` Prefix im Namen — Soft-Separation via n8n-Tags
+
+**Optionaler Alt-Setup (Plan-Original, §290-307):**
+- `ops-n8n` (Port 5679): Separater Container via `n8n/docker-compose.yml`
+- Nur aktivieren wenn Blast-Radius-Trennung wichtiger als Ops-Einfachheit wird
 
 ---
 
