@@ -1,359 +1,140 @@
 {
   "id": "ai-review-callback",
-  "name": "[AI-Review] Discord Interaction \u2192 GitHub Action",
-  "active": false,
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "pinData": {},
-  "tags": [
-    { "name": "ai-review" },
-    { "name": "notifications" },
-    { "name": "discord" }
-  ],
+  "name": "[AI-Review] Discord Interaction → GitHub Action",
+  "active": true,
   "nodes": [
     {
-      "id": "webhook-interaction",
+      "id": "webhook-node",
       "name": "Receive Discord Interaction",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 260],
+      "position": [240, 300],
       "webhookId": "discord-interaction",
       "parameters": {
         "httpMethod": "POST",
         "path": "discord-interaction",
         "responseMode": "responseNode",
-        "options": {}
+        "options": {
+          "rawBody": true
+        }
       }
     },
     {
-      "id": "ed25519-verify",
-      "name": "Ed25519 Signature Verify",
+      "id": "verify-and-route",
+      "name": "Verify + Route",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [540, 260],
+      "position": [460, 300],
       "parameters": {
-        "jsCode": "// Ed25519 Signature Verification f\u00fcr Discord Interactions.\n// Discord POSTet bei jedem Interaction (Button-Click ODER Ping-Verify) mit:\n//   Header: X-Signature-Ed25519  (hex-encoded Signatur)\n//   Header: X-Signature-Timestamp (Unix Timestamp als String)\n//   Body: raw JSON string\n//\n// Verify-Pflicht (Plan §670, Discord Docs):\n//   message = timestamp_bytes + body_bytes\n//   verify(signature, message, DISCORD_PUBLIC_KEY)\n//\n// Falls Verify fehlschl\u00e4gt \u2192 401 sofort zur\u00fcckgeben.\n// Falls Interaction Type == 1 (PING) \u2192 {type:1} zur\u00fcckgeben (Endpoint-Verify).\n//\n// ACHTUNG: n8n liefert headers in $json.headers, body in $json.body.\n// Wir nutzen Node.js crypto.subtle f\u00fcr Ed25519 (WebCrypto API in n8n >= 1.x).\n\nconst headers   = $json.headers ?? {};\nconst body      = $json.body ?? {};\nconst rawBody   = $json.rawBody ?? JSON.stringify(body);\n\nconst signature  = headers['x-signature-ed25519'] ?? headers['X-Signature-Ed25519'] ?? '';\nconst timestamp  = headers['x-signature-timestamp'] ?? headers['X-Signature-Timestamp'] ?? '';\nconst publicKey  = $env.DISCORD_PUBLIC_KEY ?? '';\n\nif (!publicKey) {\n  throw new Error('DISCORD_PUBLIC_KEY nicht gesetzt in n8n env. Bitte ~/.openclaw/.env pr\u00fcfen.');\n}\n\n// --- Signature Verify via WebCrypto (Ed25519) ---\nlet verifyOk = false;\ntry {\n  const encoder = new TextEncoder();\n  const msgBytes = encoder.encode(timestamp + rawBody);\n  const sigBytes = Uint8Array.from(Buffer.from(signature, 'hex'));\n  const keyBytes = Uint8Array.from(Buffer.from(publicKey, 'hex'));\n\n  const cryptoKey = await crypto.subtle.importKey(\n    'raw',\n    keyBytes,\n    { name: 'Ed25519' },\n    false,\n    ['verify'],\n  );\n\n  verifyOk = await crypto.subtle.verify(\n    { name: 'Ed25519' },\n    cryptoKey,\n    sigBytes,\n    msgBytes,\n  );\n} catch (err) {\n  // Malformed signature oder fehlende WebCrypto-Unterst\u00fctzung\n  verifyOk = false;\n}\n\nif (!verifyOk) {\n  return [{\n    json: {\n      _action: 'reject',\n      _reason: 'Ed25519 signature verification failed',\n      _http_status: 401,\n    },\n  }];\n}\n\n// --- Interaction Type Check ---\nconst interactionType = body.type ?? 0;\n\n// Type 1 = PING (Discord verifiziert den Endpoint beim Eintragen der URL)\nif (interactionType === 1) {\n  return [{\n    json: {\n      _action: 'pong',\n      _pong_response: { type: 1 },  // ACK Discord PING\n    },\n  }];\n}\n\n// Type 3 = MESSAGE_COMPONENT (Button-Click)\nif (interactionType === 3) {\n  const customId = body.data?.custom_id ?? '';\n  const userId   = body.member?.user?.id ?? body.user?.id ?? '';\n  const interactionId    = body.id ?? '';\n  const interactionToken = body.token ?? '';\n\n  // custom_id Format: 'action:pr_number'\n  const parts = customId.split(':');\n  if (parts.length !== 2) {\n    return [{\n      json: {\n        _action: 'invalid',\n        _reason: `custom_id malformed: '${customId}' (expected 'action:pr_number')`,\n        interaction_id: interactionId,\n        interaction_token: interactionToken,\n      },\n    }];\n  }\n\n  const [actionRaw, prRaw] = parts;\n  const action = actionRaw.toLowerCase().trim();\n  const prNumber = parseInt(prRaw, 10);\n\n  if (!Number.isFinite(prNumber) || prNumber <= 0) {\n    return [{\n      json: {\n        _action: 'invalid',\n        _reason: `pr_number malformed: '${prRaw}'`,\n        interaction_id: interactionId,\n        interaction_token: interactionToken,\n      },\n    }];\n  }\n\n  if (!['approve', 'fix', 'manual'].includes(action)) {\n    return [{\n      json: {\n        _action: 'invalid',\n        _reason: `unknown action: '${action}'`,\n        interaction_id: interactionId,\n        interaction_token: interactionToken,\n      },\n    }];\n  }\n\n  return [{\n    json: {\n      _action: action,\n      pr_number: prNumber,\n      user_id: userId,\n      interaction_id: interactionId,\n      interaction_token: interactionToken,\n    },\n  }];\n}\n\n// Unbekannter Interaction Type\nreturn [{\n  json: {\n    _action: 'noop',\n    _reason: `unhandled interaction type: ${interactionType}`,\n  },\n}];\n"
+        "jsCode": "const crypto = require('crypto');\nconst MAX_TIMESTAMP_SKEW_SEC = 300;\nconst VALID_ACTIONS = new Set(['approve','fix','manual']);\n\nconst item = $input.first() ?? {};\nconst jsonPart = item.json ?? {};\nconst binaryPart = item.binary ?? {};\nconst headers = jsonPart.headers ?? {};\n\nlet rawBody = '';\nif (binaryPart.data) {\n  const d = binaryPart.data;\n  if (Buffer.isBuffer(d)) rawBody = d.toString('utf8');\n  else if (typeof d === 'string') rawBody = Buffer.from(d, 'base64').toString('utf8');\n  else if (d.data) rawBody = Buffer.isBuffer(d.data) ? d.data.toString('utf8') : Buffer.from(d.data, 'base64').toString('utf8');\n}\nif (!rawBody && typeof jsonPart.body === 'string') rawBody = jsonPart.body;\nif (!rawBody && jsonPart.body) rawBody = JSON.stringify(jsonPart.body);\n\nlet body = {};\ntry { body = JSON.parse(rawBody || '{}'); } catch (e) {}\n\nconst signature = headers['x-signature-ed25519'] ?? '';\nconst timestamp = headers['x-signature-timestamp'] ?? '';\nconst publicKey = $env.DISCORD_PUBLIC_KEY ?? '';\n\n// Replay-Schutz: Timestamp darf nicht mehr als 5min vom Server abweichen\nconst tsNum = parseInt(timestamp, 10);\nconst nowSec = Math.floor(Date.now() / 1000);\nif (!Number.isFinite(tsNum) || Math.abs(nowSec - tsNum) > MAX_TIMESTAMP_SKEW_SEC) {\n  console.log(`[callback] timestamp-skew-reject now=${nowSec} ts=${tsNum}`);\n  return [{ json: { _route: 'reject', _response: { error: 'invalid_timestamp' }, _status: 401 } }];\n}\n\n// Ed25519 Signatur verifizieren (SPKI-prefix für Node crypto.verify)\nlet verifyOk = false;\ntry {\n  if (publicKey && signature && timestamp && rawBody) {\n    const pub = Buffer.from(publicKey, 'hex');\n    const sig = Buffer.from(signature, 'hex');\n    const msg = Buffer.from(timestamp + rawBody, 'utf8');\n    verifyOk = crypto.verify(null, msg, { key: Buffer.concat([Buffer.from('302a300506032b6570032100', 'hex'), pub]), format: 'der', type: 'spki' }, sig);\n  }\n} catch (err) {\n  console.log(`[callback] verify-exception ${err.message}`);\n}\n\nif (!verifyOk) {\n  console.log(`[callback] sig-invalid type=${body.type} rawLen=${rawBody.length} sigLen=${signature.length}`);\n  return [{ json: { _route: 'reject', _response: { error: 'invalid_signature' }, _status: 401 } }];\n}\n\n// PING — Discord Endpoint-Verifikation\nif (body.type === 1) {\n  console.log('[callback] ping-ok');\n  return [{ json: { _route: 'pong', _response: { type: 1 }, _status: 200 } }];\n}\n\n// MESSAGE_COMPONENT (Button-Click)\nif (body.type === 3) {\n  const customId = body.data?.custom_id ?? '';\n  const [actionRaw, prRaw] = customId.split(':');\n  const action = (actionRaw ?? '').toLowerCase().trim();\n  const prNumber = parseInt(prRaw ?? '', 10);\n  const userId = body.member?.user?.id ?? body.user?.id ?? '';\n  const interactionId = body.id ?? '';\n  const interactionToken = body.token ?? '';\n\n  if (!VALID_ACTIONS.has(action) || !Number.isFinite(prNumber) || prNumber <= 0) {\n    console.log(`[callback] malformed-custom-id '${customId}'`);\n    return [{ json: { _route: 'reject', _response: { type: 4, data: { content: `Unknown action \\`${customId}\\``, flags: 64 } }, _status: 200 } }];\n  }\n\n  console.log(`[callback] dispatch action=${action} pr=${prNumber} user=${userId} iid=${interactionId}`);\n\n  return [{ json: {\n    _route: 'dispatch',\n    _response: { type: 6 },\n    _status: 200,\n    _dispatch: {\n      action,\n      pr_number: prNumber,\n      user_id: userId,\n      target_repo: $env.GITHUB_TARGET_REPO ?? 'EtroxTaran/ai-portal',\n      interaction_id: interactionId,\n      interaction_token: interactionToken\n    }\n  } }];\n}\n\nconsole.log(`[callback] unknown-type ${body.type}`);\nreturn [{ json: { _route: 'reject', _response: { error: 'unknown_type' }, _status: 400 } }];\n"
       }
     },
     {
-      "id": "reject-check",
-      "name": "Reject: 401 on Sig Failure",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [860, 160],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "typeValidation": "loose"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $json._action }}",
-              "rightValue": "reject",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
-      }
-    },
-    {
-      "id": "respond-401",
-      "name": "Respond 401 Unauthorized",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [1060, 80],
-      "parameters": {
-        "respondWith": "json",
-        "responseCode": 401,
-        "responseBody": "={{ { error: 'invalid_signature' } }}"
-      }
-    },
-    {
-      "id": "pong-check",
-      "name": "PING? → Respond PONG",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [860, 320],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "typeValidation": "loose"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $json._action }}",
-              "rightValue": "pong",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
-      }
-    },
-    {
-      "id": "respond-pong",
-      "name": "Respond PONG (type:1)",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [1060, 260],
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ $json._pong_response }}"
-      }
-    },
-    {
-      "id": "dispatch-switch",
-      "name": "Dispatch by Action",
+      "id": "switch-route",
+      "name": "Switch Route",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [1060, 480],
+      "position": [680, 300],
       "parameters": {
         "rules": {
           "values": [
             {
               "conditions": {
-                "options": { "caseSensitive": true, "typeValidation": "loose" },
+                "options": {"caseSensitive": true, "typeValidation": "loose"},
+                "combinator": "and",
                 "conditions": [
-                  {
-                    "leftValue": "={{ $json._action }}",
-                    "rightValue": "approve",
-                    "operator": { "type": "string", "operation": "equals" }
-                  }
-                ],
-                "combinator": "and"
+                  {"leftValue": "={{ $json._route }}", "rightValue": "dispatch", "operator": {"type": "string", "operation": "equals"}}
+                ]
               },
               "renameOutput": true,
-              "outputKey": "approve"
-            },
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "typeValidation": "loose" },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json._action }}",
-                    "rightValue": "fix",
-                    "operator": { "type": "string", "operation": "equals" }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "fix"
-            },
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "typeValidation": "loose" },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json._action }}",
-                    "rightValue": "manual",
-                    "operator": { "type": "string", "operation": "equals" }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "manual"
+              "outputKey": "dispatch"
             }
           ]
         },
         "options": {
-          "fallbackOutput": "extra"
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "respond"
         }
       }
     },
     {
-      "id": "action-approve",
-      "name": "Action: Approve (PR comment /ai-review approve)",
+      "id": "github-dispatch",
+      "name": "GitHub workflow_dispatch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1360, 360],
+      "position": [900, 200],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
       "parameters": {
         "method": "POST",
-        "url": "={{ 'https://api.github.com/repos/' + $env.GITHUB_REPO + '/issues/' + $json.pr_number + '/comments' }}",
+        "url": "=https://api.github.com/repos/{{ $env.GITHUB_REPO }}/actions/workflows/handle-button-action.yml/dispatches",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Accept", "value": "application/vnd.github+json" },
-            { "name": "Authorization", "value": "=Bearer {{ $env.GITHUB_TOKEN }}" },
-            { "name": "X-GitHub-Api-Version", "value": "2022-11-28" }
+            {"name": "Authorization", "value": "=Bearer {{ $env.GITHUB_TOKEN }}"},
+            {"name": "Accept", "value": "application/vnd.github+json"},
+            {"name": "X-GitHub-Api-Version", "value": "2022-11-28"},
+            {"name": "User-Agent", "value": "ai-review-callback/1.0"}
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { body: '/ai-review approve' } }}",
-        "options": { "timeout": 10000 }
+        "jsonBody": "={{ { ref: 'main', inputs: { action: $json._dispatch.action, pr_number: String($json._dispatch.pr_number), user_id: $json._dispatch.user_id, target_repo: $json._dispatch.target_repo } } }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {"neverError": true, "fullResponse": true, "responseFormat": "json"}
+          }
+        }
       }
     },
     {
-      "id": "action-autofix",
-      "name": "Action: Auto-Fix (gh workflow run)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1360, 520],
+      "id": "log-dispatch",
+      "name": "Log Dispatch Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 200],
       "parameters": {
-        "method": "POST",
-        "url": "={{ 'https://api.github.com/repos/' + $env.GITHUB_REPO + '/actions/workflows/ai-review-auto-fix.yml/dispatches' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Accept", "value": "application/vnd.github+json" },
-            { "name": "Authorization", "value": "=Bearer {{ $env.GITHUB_TOKEN }}" },
-            { "name": "X-GitHub-Api-Version", "value": "2022-11-28" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ { ref: 'main', inputs: { pr_number: String($json.pr_number), reason: 'discord-button', context_hint: 'Nico hat Auto-Fix im Discord getippt', max_files: '10' } } }}",
-        "options": { "timeout": 10000 }
+        "jsCode": "const item = $input.first()?.json ?? {};\nconst status = item.statusCode ?? item.status ?? 0;\nconst dispatch = $('Verify + Route').first().json._dispatch ?? {};\nconst ok = status >= 200 && status < 300;\n\nconsole.log(`[callback] github-dispatch status=${status} ok=${ok} action=${dispatch.action} pr=${dispatch.pr_number}`);\nif (!ok) {\n  const errBody = typeof item.body === 'object' ? JSON.stringify(item.body).slice(0, 300) : String(item.body || '').slice(0, 300);\n  console.log(`[callback] github-dispatch-error body=${errBody}`);\n}\n\n// Discord erwartet IMMER type:6 ack innerhalb 3s (sonst Interaction failed)\n// Selbst bei GitHub-Fehler: ack zurück, damit der Button im Client nicht hängt.\n// Fehlerzustand wird in n8n-Logs ausgewertet.\nreturn [{ json: { _response: { type: 6 }, _status: 200, _dispatch_ok: ok, _dispatch_status: status } }];\n"
       }
     },
     {
-      "id": "action-manual",
-      "name": "Action: Manual Review (label + comment)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1360, 680],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ 'https://api.github.com/repos/' + $env.GITHUB_REPO + '/issues/' + $json.pr_number + '/labels' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Accept", "value": "application/vnd.github+json" },
-            { "name": "Authorization", "value": "=Bearer {{ $env.GITHUB_TOKEN }}" },
-            { "name": "X-GitHub-Api-Version", "value": "2022-11-28" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ ['needs-human-review'] }}",
-        "options": { "timeout": 10000 }
-      }
-    },
-    {
-      "id": "ack-interaction",
-      "name": "ACK Discord Interaction (deferred update)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1660, 520],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ 'https://discord.com/api/v10/interactions/' + $('Dispatch by Action').item.json.interaction_id + '/' + $('Dispatch by Action').item.json.interaction_token + '/callback' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Authorization", "value": "=Bot {{ $env.DISCORD_BOT_TOKEN }}" },
-            { "name": "Content-Type", "value": "application/json" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ { type: 6 } }}",
-        "options": { "timeout": 10000 }
-      },
-      "notes": "type:6 = DEFERRED_UPDATE_MESSAGE — zeigt Discord keinen Loading-State, best practice f\u00fcr Bot-Actions die >3s dauern (GitHub API Call)"
-    },
-    {
-      "id": "respond-ok",
-      "name": "Respond 200 OK",
+      "id": "respond",
+      "name": "Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1860, 520],
+      "position": [1340, 300],
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { ok: true, action: $('Dispatch by Action').item.json._action, pr: $('Dispatch by Action').item.json.pr_number } }}"
+        "responseBody": "={{ $json._response }}",
+        "options": {
+          "responseCode": "={{ $json._status ?? 200 }}"
+        }
       }
     }
   ],
   "connections": {
     "Receive Discord Interaction": {
+      "main": [[{"node": "Verify + Route", "type": "main", "index": 0}]]
+    },
+    "Verify + Route": {
+      "main": [[{"node": "Switch Route", "type": "main", "index": 0}]]
+    },
+    "Switch Route": {
       "main": [
-        [
-          { "node": "Ed25519 Signature Verify", "type": "main", "index": 0 }
-        ]
+        [{"node": "GitHub workflow_dispatch", "type": "main", "index": 0}],
+        [{"node": "Respond", "type": "main", "index": 0}]
       ]
     },
-    "Ed25519 Signature Verify": {
-      "main": [
-        [
-          { "node": "Reject: 401 on Sig Failure", "type": "main", "index": 0 }
-        ]
-      ]
+    "GitHub workflow_dispatch": {
+      "main": [[{"node": "Log Dispatch Result", "type": "main", "index": 0}]]
     },
-    "Reject: 401 on Sig Failure": {
-      "main": [
-        [
-          { "node": "Respond 401 Unauthorized", "type": "main", "index": 0 }
-        ],
-        [
-          { "node": "PING? \u2192 Respond PONG", "type": "main", "index": 0 }
-        ]
-      ]
-    },
-    "PING? \u2192 Respond PONG": {
-      "main": [
-        [
-          { "node": "Respond PONG (type:1)", "type": "main", "index": 0 }
-        ],
-        [
-          { "node": "Dispatch by Action", "type": "main", "index": 0 }
-        ]
-      ]
-    },
-    "Dispatch by Action": {
-      "main": [
-        [
-          { "node": "Action: Approve (PR comment /ai-review approve)", "type": "main", "index": 0 }
-        ],
-        [
-          { "node": "Action: Auto-Fix (gh workflow run)", "type": "main", "index": 0 }
-        ],
-        [
-          { "node": "Action: Manual Review (label + comment)", "type": "main", "index": 0 }
-        ],
-        [
-          { "node": "ACK Discord Interaction (deferred update)", "type": "main", "index": 0 }
-        ]
-      ]
-    },
-    "Action: Approve (PR comment /ai-review approve)": {
-      "main": [
-        [
-          { "node": "ACK Discord Interaction (deferred update)", "type": "main", "index": 0 }
-        ]
-      ]
-    },
-    "Action: Auto-Fix (gh workflow run)": {
-      "main": [
-        [
-          { "node": "ACK Discord Interaction (deferred update)", "type": "main", "index": 0 }
-        ]
-      ]
-    },
-    "Action: Manual Review (label + comment)": {
-      "main": [
-        [
-          { "node": "ACK Discord Interaction (deferred update)", "type": "main", "index": 0 }
-        ]
-      ]
-    },
-    "ACK Discord Interaction (deferred update)": {
-      "main": [
-        [
-          { "node": "Respond 200 OK", "type": "main", "index": 0 }
-        ]
-      ]
+    "Log Dispatch Result": {
+      "main": [[{"node": "Respond", "type": "main", "index": 0}]]
     }
-  }
+  },
+  "settings": {"executionOrder": "v1"},
+  "staticData": null
 }
