@@ -1,0 +1,52 @@
+version: "3.9"
+
+# ops-n8n — Globale Messaging-Bridge für AI-Review-Pipeline
+# Port 5679 (5678 bleibt bei ai-portal-n8n für Business-Workflows)
+# Image: n8nio/n8n:latest (kein Custom-Build)
+# Volume: ops-n8n-data (Credentials + Workflow-Storage)
+# Env-File: ~/.openclaw/.env (geteilte Secrets)
+
+services:
+  ops-n8n:
+    image: n8nio/n8n:latest
+    container_name: ops-n8n
+    restart: unless-stopped
+    ports:
+      - "5679:5678"
+    env_file:
+      - ${HOME}/.openclaw/.env
+    environment:
+      # n8n interne Config
+      N8N_HOST: "0.0.0.0"
+      N8N_PORT: "5678"
+      N8N_PROTOCOL: "http"
+      # Execution Timeout: 600s — parallele Reviewer-Execs (Plan §731 R10)
+      N8N_EXECUTION_TIMEOUT: "600"
+      # Webhook-URL (für Tailscale-Funnel-External-URL)
+      WEBHOOK_URL: "https://r2d2.tail4fc6dd.ts.net"
+      # API aktivieren (für Import-Scripts)
+      N8N_API_ALLOWED_ORIGINS: "*"
+      N8N_METRICS: "true"
+      # Log-Level
+      N8N_LOG_LEVEL: "info"
+      # Task Runner Heartbeat (verhindert Timeout bei langen LLM-Calls)
+      N8N_RUNNERS_HEARTBEAT_INTERVAL: "300"
+      OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS: "false"
+    volumes:
+      - ops-n8n-data:/home/node/.n8n
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://127.0.0.1:5678/healthz",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  ops-n8n-data:
+    name: ops-n8n-data

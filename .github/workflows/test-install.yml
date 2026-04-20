@@ -87,6 +87,9 @@ jobs:
             bash -n "$f"
           done
 
+      - name: Install PyYAML (for dotbot manifest parse)
+        run: python3 -m pip install --user --break-system-packages "pyyaml==6.0.2" || python3 -m pip install --user "pyyaml==6.0.2"
+
       - name: dotbot dry-run (structure only, no symlinks)
         run: |
           set -euo pipefail

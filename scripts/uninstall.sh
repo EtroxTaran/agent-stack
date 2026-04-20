@@ -13,6 +13,7 @@ set -euo pipefail
 
 readonly C_RESET=$'\033[0m'
 readonly C_BOLD=$'\033[1m'
+# shellcheck disable=SC2034  # reserved for future error-output styling (parität zu install.sh)
 readonly C_RED=$'\033[31m'
 readonly C_GREEN=$'\033[32m'
 readonly C_YELLOW=$'\033[33m'

@@ -181,6 +181,7 @@ if [[ -f "${HOME}/.openclaw/.env" ]]; then
     set +a
     _ok "sourced ~/.openclaw/.env"
 else
+    # shellcheck disable=SC2088  # tilde ist hier nur display-text, nicht path-expansion
     _warn "~/.openclaw/.env not found — MCP registration may fail for some servers"
 fi
 
