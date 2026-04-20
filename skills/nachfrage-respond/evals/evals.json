@@ -1,0 +1,55 @@
+{
+  "skill": "nachfrage-respond",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "handle the /ai-review approve comment on PR #203",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, dispatches /ai-review approve command, routes to approval flow and posts reply"
+    },
+    {
+      "id": "trigger-2",
+      "input": "someone posted /ai-review retry — process das",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, dispatches /ai-review retry command, re-runs review pipeline on the PR"
+    },
+    {
+      "id": "trigger-3",
+      "input": "process nachfrage comment bitte, PR 117",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, parses /ai-review command on PR #117, dispatches to approve/retry/waiver handler"
+    },
+    {
+      "id": "trigger-4",
+      "input": "PR comment dispatch — /ai-review security-waiver wurde gepostet",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, dispatches /ai-review security-waiver, routes to security-waiver skill for composer"
+    },
+    {
+      "id": "trigger-5",
+      "input": "neuer /ai-review ac-waiver comment, kannst du den dispatchen?",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, parses /ai-review ac-waiver command, routes to ac-waiver skill handler"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "schreib ein neues comment auf PR #88 mit dem test-report",
+      "expected_trigger": false,
+      "expected_output": "Uses gh pr comment directly, not nachfrage-respond"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "close PR #55 manuell, der ansatz ist falsch",
+      "expected_trigger": false,
+      "expected_output": "Uses gh pr close directly, not nachfrage-respond"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "Sabine hat im PR gefragt ob wir das anders lösen können — antworte ihr",
+      "expected_trigger": false,
+      "expected_output": "Uses gh pr comment manually (human reviewer, no /ai-review), not nachfrage-respond"
+    }
+  ]
+}

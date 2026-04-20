@@ -1,0 +1,55 @@
+{
+  "skill": "code-review-expert",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "PR #142 ist fertig, kannst du mal drüber schauen? Ist nen neuer Service für User-Preferences",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs full review: SOLID, TDD-completeness, TypeScript strict, error paths, security smell, commit hygiene"
+    },
+    {
+      "id": "trigger-2",
+      "input": "can you review the last 3 commits on this branch, want to merge soon",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs full review on the diff, outputs findings with path:line references"
+    },
+    {
+      "id": "trigger-3",
+      "input": "mach mal review auf den diff zu main, paar refactorings dabei die ich unsicher finde",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, diffs against main, flags SOLID/TypeScript-strict/test-gaps with severity ratings"
+    },
+    {
+      "id": "trigger-4",
+      "input": "what do you think of this PR? https://github.com/EtroxTaran/ai-portal/pull/17 - nervous about the state management part",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, fetches PR diff via gh, runs structured review with focus areas including state management"
+    },
+    {
+      "id": "trigger-5",
+      "input": "check this diff before I push, hab ein bisschen viel in einen commit gepackt",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, reviews uncommitted diff, flags commit hygiene issues and suggests splits"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "prettier ist eskaliert, formatier mir die typescript files neu",
+      "expected_trigger": false,
+      "expected_output": "Uses Bash or format-on-write hook directly, not code-review-expert"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "scan den branch auf OWASP-Top-10 und Secret-Leaks bitte",
+      "expected_trigger": false,
+      "expected_output": "Uses security-audit skill, not code-review-expert"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "prüf mal ob das UI konform zur DESIGN.md ist und shared-ui Components nutzt",
+      "expected_trigger": false,
+      "expected_output": "Uses design-review skill, not code-review-expert"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "skill": "security-audit",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "bitte security review über den branch, ist ne Auth-Rotation dabei und ich will nix im log leaken",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs OWASP-10 + secret-leakage scan + SAST on diff, reports findings by severity"
+    },
+    {
+      "id": "trigger-2",
+      "input": "scan the repo for leaked secrets and any hardcoded tokens before I push to public",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs secret-leakage scan (trufflehog/gitleaks patterns) and flags findings with path:line"
+    },
+    {
+      "id": "trigger-3",
+      "input": "kannst du mal OWASP check auf den neuen /api/upload endpoint machen? Nutzt multer",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, audits endpoint against OWASP-10 (A01/A03/A08 focus for upload), reports vulnerabilities"
+    },
+    {
+      "id": "trigger-4",
+      "input": "vulnerabilities check bitte, npm audit meckert aber ich will nen echten review nicht nur die CVE-Liste",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, correlates npm-audit CVEs with actual code usage, filters false positives, reports exploitable paths"
+    },
+    {
+      "id": "trigger-5",
+      "input": "CVE lookup for lodash 4.17.20 — is the prototype pollution thing relevant for us?",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, looks up CVE via osv/nvd, checks usage of vulnerable API in codebase, answers exploitability"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "review PR #88, möchte SOLID und TypeScript-strict Feedback",
+      "expected_trigger": false,
+      "expected_output": "Uses code-review-expert skill, not security-audit"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "die naming conventions in src/utils sind inkonsistent, fix bitte",
+      "expected_trigger": false,
+      "expected_output": "Uses code-review-expert or direct edits, not security-audit"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "der /search endpoint ist zu langsam, profile das mal und gib performance tipps",
+      "expected_trigger": false,
+      "expected_output": "Uses performance-profiling or Bash directly, not security-audit"
+    }
+  ]
+}

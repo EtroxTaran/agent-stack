@@ -1,0 +1,55 @@
+{
+  "skill": "review-gate",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "run review gate bevor ich pushe",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs local act-based smoke that simulates AI-review pipeline, reports pass/fail"
+    },
+    {
+      "id": "trigger-2",
+      "input": "act laufen lassen — will nicht blind pushen",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, invokes act to simulate review pipeline locally, surfaces any failures"
+    },
+    {
+      "id": "trigger-3",
+      "input": "/review-gate",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs act-based pre-push smoke of the AI-review workflow, reports results"
+    },
+    {
+      "id": "trigger-4",
+      "input": "test the pipeline locally first — letzter push ist in CI gescheitert",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs local act-based simulation of AI-review pipeline before push"
+    },
+    {
+      "id": "trigger-5",
+      "input": "local review before push, bitte mit act",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs act to replicate the AI-review workflow locally, prints pass/fail summary"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "trigger the CI run on the remote — hat gerade gepusht",
+      "expected_trigger": false,
+      "expected_output": "Uses gh workflow run or GitHub Actions directly, not review-gate"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "die CI ist auf main rot, debugge den failure",
+      "expected_trigger": false,
+      "expected_output": "Uses CI debugging workflow or code-review-expert, not review-gate"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "deploy full production release now",
+      "expected_trigger": false,
+      "expected_output": "Uses release-checklist or deploy workflow, not review-gate"
+    }
+  ]
+}

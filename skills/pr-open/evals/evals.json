@@ -1,0 +1,55 @@
+{
+  "skill": "pr-open",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "Branch ist fertig, lass PR aufmachen — schließt Issue 42",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, pre-flight checks, builds PR body with Closes #42 + AC checklist + test plan, runs gh pr create"
+    },
+    {
+      "id": "trigger-2",
+      "input": "push und pr machen bitte, ready for review",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, pushes branch, composes PR body with AC checklist + test plan, runs gh pr create"
+    },
+    {
+      "id": "trigger-3",
+      "input": "/pr-open closes #187",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, builds PR body with Closes #187 + AC checklist + test plan, runs gh pr create"
+    },
+    {
+      "id": "trigger-4",
+      "input": "create pull request for the auth-refactor branch, links issue 55",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, pre-flight checks, drafts PR body with Closes #55 + AC checklist + test plan, runs gh pr create"
+    },
+    {
+      "id": "trigger-5",
+      "input": "open PR — feature komplett, tests grün",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, pre-flight, composes PR body with AC checklist + test plan, runs gh pr create"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "kannst du den PR #142 reviewen? ist noch draft",
+      "expected_trigger": false,
+      "expected_output": "Uses code-review-expert, not pr-open"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "merge PR #98 jetzt endlich in main",
+      "expected_trigger": false,
+      "expected_output": "Uses gh pr merge directly or release-checklist, not pr-open"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "close issue 77 ohne PR — ist nicht mehr relevant",
+      "expected_trigger": false,
+      "expected_output": "Uses gh issue close directly, not pr-open"
+    }
+  ]
+}

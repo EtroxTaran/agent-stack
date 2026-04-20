@@ -1,0 +1,55 @@
+{
+  "skill": "design-review",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "design review auf den neuen settings-screen branch - ist alles konform zu DESIGN.md?",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, checks diff against DESIGN.md rules, verifies shared-ui usage, reports DESIGN violations"
+    },
+    {
+      "id": "trigger-2",
+      "input": "UI conformance check bitte, ich habe eigene Buttons gebaut und bin mir unsicher ob das ok ist",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, flags custom Button vs shared-ui/Button, lists DESIGN.md token/component violations"
+    },
+    {
+      "id": "trigger-3",
+      "input": "check this PR for DESIGN violations before merge, new onboarding flow has lots of custom spacing",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, audits spacing/tokens against DESIGN.md, flags non-shared-ui layouts"
+    },
+    {
+      "id": "trigger-4",
+      "input": "nutzt der branch shared-ui komponenten oder hat der dev wieder was eigenes gebaut?",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, greps for shared-ui imports vs local component defs, reports coverage"
+    },
+    {
+      "id": "trigger-5",
+      "input": "/design-review bitte, wichtig für den release heute",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs full DESIGN.md conformance + shared-ui audit on current branch"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "review PR #301 bitte, SOLID feedback für den neuen service layer",
+      "expected_trigger": false,
+      "expected_output": "Uses code-review-expert skill, not design-review"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "der branch ist pure backend (neuer cron + db migration) - kannst du reviewen?",
+      "expected_trigger": false,
+      "expected_output": "Uses code-review-expert skill, not design-review (no UI surface)"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "die CI failed auf visual-regression snapshot, kannst du helfen?",
+      "expected_trigger": false,
+      "expected_output": "Uses debugging or CI tools directly, not design-review"
+    }
+  ]
+}
