@@ -207,6 +207,23 @@ for cli_dir in "${CLI_DIRS[@]}"; do
 done
 
 # ---------------------------------------------------------------------------
+# 4. ai-review-pipeline (optional Integration)
+# ---------------------------------------------------------------------------
+printf '\n%sai-review-pipeline (optional)%s\n' "${C_DIM}" "${C_RESET}"
+
+if command -v ai-review >/dev/null 2>&1; then
+    aireview_version_out="$(ai-review --version 2>&1)" || aireview_version_out=""
+    if [[ -n "${aireview_version_out}" ]]; then
+        _pass "ai-review-pipeline installiert: ${aireview_version_out}"
+    else
+        _warn "ai-review binary gefunden, aber --version schlägt fehl — Installation möglicherweise defekt"
+    fi
+else
+    printf '  %s·%s ai-review-pipeline: nicht installiert\n' "${C_DIM}" "${C_RESET}"
+    printf '  %s·%s Fuer optionale Integration: ./install.sh --with-ai-review\n' "${C_DIM}" "${C_RESET}"
+fi
+
+# ---------------------------------------------------------------------------
 # Report
 # ---------------------------------------------------------------------------
 printf '\n%s─────────────────────────────────────────%s\n' "${C_DIM}" "${C_RESET}"
