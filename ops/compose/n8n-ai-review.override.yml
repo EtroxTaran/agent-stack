@@ -1,0 +1,31 @@
+# n8n-ai-review.override.yml
+#
+# Docker-Compose-Override für ai-portal-n8n, ergänzt den Container um einen
+# ZWEITEN env_file-Mount für AI-Review-Pipeline-Secrets.
+#
+# Design-Rationale:
+#   - ~/.openclaw/.env = OpenClaw-Agent-Domain (bestehend, separat)
+#   - ~/.config/ai-workflows/env = AI-Workflows-Domain (neu, unsere Secrets)
+#   - Consolidation auf ai-portal-n8n (Port 5678) per Plan A+
+#
+# Enthaltene Vars (aus ~/.config/ai-workflows/env):
+#   - DISCORD_BOT_TOKEN, DISCORD_PUBLIC_KEY, DISCORD_APPLICATION_ID, DISCORD_GUILD_ID
+#   - DISCORD_ALERTS_CHANNEL_ID + DISCORD_CHANNEL_* (pro Projekt)
+#   - GITHUB_TOKEN, GITHUB_REPO (für ai-review-callback Workflow)
+#
+# Usage:
+#   docker compose \
+#     -f ~/projects/ai-portal/docker-compose.yml \
+#     -f ~/projects/agent-stack/ops/compose/n8n-ai-review.override.yml \
+#     up -d --force-recreate n8n-portal
+#
+# ODER via Helper-Script:
+#   ~/projects/agent-stack/ops/scripts/restart-n8n-with-ai-review.sh
+
+services:
+  n8n-portal:
+    env_file:
+      # OpenClaw-Secrets (bestehend, unverändert)
+      - /home/clawd/.openclaw/.env
+      # AI-Workflows-Secrets (neu, separate Domain)
+      - /home/clawd/.config/ai-workflows/env
