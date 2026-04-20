@@ -7,9 +7,15 @@
   },
   "pinData": {},
   "tags": [
-    { "name": "ai-review" },
-    { "name": "notifications" },
-    { "name": "discord" }
+    {
+      "name": "ai-review"
+    },
+    {
+      "name": "notifications"
+    },
+    {
+      "name": "discord"
+    }
   ],
   "nodes": [
     {
@@ -17,7 +23,10 @@
       "name": "Receive Dispatch Payload",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 260],
+      "position": [
+        240,
+        260
+      ],
       "webhookId": "ai-review-dispatch",
       "parameters": {
         "httpMethod": "POST",
@@ -31,9 +40,12 @@
       "name": "Build Discord Components v2 Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [540, 260],
+      "position": [
+        540,
+        260
+      ],
       "parameters": {
-        "jsCode": "// Baut eine Discord Components v2 Message mit ActionRow + Inline-Buttons.\n// Input-Schema (von discord_notify.py in ai-review-pipeline):\n//   body.pr_number      string | number\n//   body.pr_url         string (GitHub PR URL)\n//   body.project        string (Projektname)\n//   body.channel_id     string (Discord Channel ID)\n//   body.stage          string (aktuell fehlgeschlagene Stage oder 'dispatch')\n//   body.summary        string (max 500 Zeichen, Review-Summary)\n//   body.avg_score      number (Consensus-Score 0-10)\n//   body.button_actions array [{text, custom_id}] — optional, override Standard-Buttons\n//\n// Discord API v10: POST /channels/{channel_id}/messages\n// flags: 32768 = IS_COMPONENTS_V2 (required für Components v2)\n// Ref: https://discord.com/developers/docs/interactions/message-components\n\nconst body = $json.body ?? $json ?? {};\n\nconst prNumber  = String(body.pr_number ?? '?');\nconst prUrl     = String(body.pr_url ?? '');\nconst project   = String(body.project ?? 'unknown');\nconst channelId = String(body.channel_id ?? '');\nconst stage     = String(body.stage ?? 'dispatch');\nconst summary   = String(body.summary ?? '').slice(0, 500);\nconst avgScore  = body.avg_score ?? null;\n\nif (!channelId) {\n  throw new Error('channel_id fehlt im Payload. Bitte .ai-review/config.yaml prüfen.');\n}\n\n// --- Content ---\nconst scoreEmoji = avgScore === null ? '' : avgScore >= 8 ? '\\u2705' : avgScore >= 5 ? '\\u26a0\\ufe0f' : '\\u274c';\nconst scoreLine = avgScore !== null ? `${scoreEmoji} **Score:** ${avgScore}/10` : '';\n\nlet content = [\n  `**AI-Review** \\u2014 Projekt \\`${project}\\` \\u2014 PR #${prNumber}`,\n  scoreLine,\n  stage !== 'dispatch' ? `**Stage:** ${stage}` : '',\n  summary ? `**Summary:**\\n\\`\\`\\`\\n${summary}\\n\\`\\`\\`` : '',\n  prUrl ? `**PR:** ${prUrl}` : '',\n].filter(Boolean).join('\\n');\n\n// --- Buttons ---\n// Standard-Buttons wenn button_actions nicht im Payload\nlet buttons;\nif (Array.isArray(body.button_actions) && body.button_actions.length > 0) {\n  buttons = body.button_actions\n    .filter(a => a && a.text && a.custom_id)\n    .map(a => ({\n      type: 2,           // BUTTON component type\n      style: a.style ?? 1,  // 1=PRIMARY, 2=SECONDARY, 4=DANGER\n      label: a.text,\n      custom_id: a.custom_id,\n    }));\n} else {\n  // Standard: Approve (PRIMARY=1), Auto-Fix (SECONDARY=2), Manual (DANGER=4)\n  buttons = [\n    { type: 2, style: 1, label: 'Approve',  custom_id: `approve:${prNumber}` },\n    { type: 2, style: 2, label: 'Auto-Fix', custom_id: `fix:${prNumber}` },\n    { type: 2, style: 4, label: 'Manual',   custom_id: `manual:${prNumber}` },\n  ];\n}\n\n// --- Payload f\u00fcr Discord API ---\n// flags: 32768 = IS_COMPONENTS_V2\nconst discordPayload = {\n  content,\n  components: [\n    {\n      type: 1,        // ACTION_ROW\n      components: buttons,\n    },\n  ],\n  flags: 32768,\n};\n\nreturn [{\n  json: {\n    channel_id: channelId,\n    discord_payload: discordPayload,\n    pr_number: prNumber,\n    project,\n  },\n}];\n"
+        "jsCode": "// Baut eine Discord Components v2 Message mit ActionRow + Inline-Buttons.\n// Input-Schema (von discord_notify.py in ai-review-pipeline):\n//   body.pr_number      string | number\n//   body.pr_url         string (GitHub PR URL)\n//   body.project        string (Projektname)\n//   body.channel_id     string (Discord Channel ID)\n//   body.stage          string (aktuell fehlgeschlagene Stage oder 'dispatch')\n//   body.summary        string (max 500 Zeichen, Review-Summary)\n//   body.avg_score      number (Consensus-Score 0-10)\n//   body.button_actions array [{text, custom_id}] \u2014 optional, override Standard-Buttons\n//\n// Discord API v10: POST /channels/{channel_id}/messages\n// flags: 32768 = IS_COMPONENTS_V2 (required f\u00fcr Components v2)\n// Ref: https://discord.com/developers/docs/interactions/message-components\n\nconst body = $json.body ?? $json ?? {};\n\nconst prNumber  = String(body.pr_number ?? '?');\nconst prUrl     = String(body.pr_url ?? '');\nconst project   = String(body.project ?? 'unknown');\nconst channelId = String(body.channel_id ?? '');\nconst stage     = String(body.stage ?? 'dispatch');\nconst summary   = String(body.summary ?? '').slice(0, 500);\nconst avgScore  = body.avg_score ?? null;\n\nif (!channelId) {\n  throw new Error('channel_id fehlt im Payload. Bitte .ai-review/config.yaml pr\u00fcfen.');\n}\n\n// --- Content ---\nconst scoreEmoji = avgScore === null ? '' : avgScore >= 8 ? '\\u2705' : avgScore >= 5 ? '\\u26a0\\ufe0f' : '\\u274c';\nconst scoreLine = avgScore !== null ? `${scoreEmoji} **Score:** ${avgScore}/10` : '';\n\nlet content = [\n  `**AI-Review** \\u2014 Projekt \\`${project}\\` \\u2014 PR #${prNumber}`,\n  scoreLine,\n  stage !== 'dispatch' ? `**Stage:** ${stage}` : '',\n  summary ? `**Summary:**\\n\\`\\`\\`\\n${summary}\\n\\`\\`\\`` : '',\n  prUrl ? `**PR:** ${prUrl}` : '',\n].filter(Boolean).join('\\n');\n\n// --- Buttons ---\n// Standard-Buttons wenn button_actions nicht im Payload\nlet buttons;\nif (Array.isArray(body.button_actions) && body.button_actions.length > 0) {\n  buttons = body.button_actions\n    .filter(a => a && a.text && a.custom_id)\n    .map(a => ({\n      type: 2,           // BUTTON component type\n      style: a.style ?? 1,  // 1=PRIMARY, 2=SECONDARY, 4=DANGER\n      label: a.text,\n      custom_id: a.custom_id,\n    }));\n} else {\n  // Standard: Approve (PRIMARY=1), Auto-Fix (SECONDARY=2), Manual (DANGER=4)\n  buttons = [\n    { type: 2, style: 1, label: 'Approve',  custom_id: `approve:${prNumber}` },\n    { type: 2, style: 2, label: 'Auto-Fix', custom_id: `fix:${prNumber}` },\n    { type: 2, style: 4, label: 'Manual',   custom_id: `manual:${prNumber}` },\n  ];\n}\n\n// --- Payload f\u00fcr Discord API ---\n// Discord Components V1 \u2014 ActionRow + Buttons (funktioniert mit `content`-Feld).\n// Bei V2 (flags:32768) w\u00e4re `content` verboten \u2014 MESSAGE_CANNOT_USE_LEGACY_FIELDS_WITH_COMPONENTS_V2.\nconst discordPayload = {\n  content,\n  components: [\n    {\n      type: 1,        // ACTION_ROW\n      components: buttons,\n    },\n  ],\n};\n\nreturn [{\n  json: {\n    channel_id: channelId,\n    discord_payload: discordPayload,\n    pr_number: prNumber,\n    project,\n  },\n}];\n"
       }
     },
     {
@@ -41,7 +53,10 @@
       "name": "POST Message to Discord Channel",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [860, 260],
+      "position": [
+        860,
+        260
+      ],
       "parameters": {
         "method": "POST",
         "url": "={{ 'https://discord.com/api/v10/channels/' + $json.channel_id + '/messages' }}",
@@ -71,7 +86,10 @@
       "name": "Respond 200 OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1160, 260],
+      "position": [
+        1160,
+        260
+      ],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ { ok: true, message_id: $json.id, channel_id: $('Build Discord Components v2 Message').item.json.channel_id, pr: $('Build Discord Components v2 Message').item.json.pr_number } }}"
