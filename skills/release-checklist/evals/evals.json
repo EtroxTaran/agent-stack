@@ -1,0 +1,55 @@
+{
+  "skill": "release-checklist",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "release checklist für v2.3 bitte",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs pre-merge gate: changelog, version bump, tag, deploy readiness for v2.3"
+    },
+    {
+      "id": "trigger-2",
+      "input": "prepare release — alle features für sprint-ende sind drin",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, walks changelog + version bump + tag + deploy-readiness checks"
+    },
+    {
+      "id": "trigger-3",
+      "input": "bump to v2.3 und alles drumrum",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, performs version bump to v2.3, updates changelog, tags, verifies deploy readiness"
+    },
+    {
+      "id": "trigger-4",
+      "input": "ready to tag — check ob changelog und version aligned sind",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, verifies changelog + version-bump alignment, then tags and gates deploy readiness"
+    },
+    {
+      "id": "trigger-5",
+      "input": "/release v1.8.0",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs release pre-merge gate: changelog, bump to v1.8.0, tag, deploy-readiness"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "daily feature PR aufmachen — neuer login-button",
+      "expected_trigger": false,
+      "expected_output": "Uses pr-open + code-review-expert, not release-checklist"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "deploy production jetzt, ohne release-prozess",
+      "expected_trigger": false,
+      "expected_output": "Uses deploy workflow directly, not release-checklist"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "hotfix auf prod — crit bug, muss schnell raus",
+      "expected_trigger": false,
+      "expected_output": "Uses separate hotfix workflow, not release-checklist"
+    }
+  ]
+}

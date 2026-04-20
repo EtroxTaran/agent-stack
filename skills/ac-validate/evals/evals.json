@@ -1,0 +1,55 @@
+{
+  "skill": "ac-validate",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "validate AC für issue #42 gegen den PR - ich will sicher sein dass alle gherkin szenarios abgedeckt sind",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, fetches issue gherkin, maps each scenario to PR files+tests, reports coverage gaps"
+    },
+    {
+      "id": "trigger-2",
+      "input": "does the PR cover the acceptance criteria from the linear issue? 4 szenarios waren drin",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, parses gherkin from issue, cross-checks against PR diff and tests, reports per-scenario status"
+    },
+    {
+      "id": "trigger-3",
+      "input": "acceptance criteria coverage check bitte - PR #55 vs issue #210",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, loads both, maps AC to tests, flags uncovered scenarios with severity"
+    },
+    {
+      "id": "trigger-4",
+      "input": "gherkin check für den branch - given/when/then szenarien aus der issue beschreibung validieren",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, extracts Given-When-Then from issue, verifies presence in test suite, outputs gap list"
+    },
+    {
+      "id": "trigger-5",
+      "input": "/ac-validate #42",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs AC validation workflow on issue #42 vs current PR"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "review PR #42 bitte, SOLID + TypeScript strict feedback",
+      "expected_trigger": false,
+      "expected_output": "Uses code-review-expert skill, not ac-validate"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "führ mal npm test aus und zeig mir welche tests failen",
+      "expected_trigger": false,
+      "expected_output": "Uses Bash directly to run tests, not ac-validate"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "der test in user.spec.ts failed bei edge-case 3, kannst du debuggen?",
+      "expected_trigger": false,
+      "expected_output": "Uses debugging/coding-agent, not ac-validate"
+    }
+  ]
+}

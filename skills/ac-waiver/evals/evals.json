@@ -1,0 +1,55 @@
+{
+  "skill": "ac-waiver",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "ac waiver — AC3 ist in e2e-test abgedeckt, der validator erkennt den selector nicht",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, composes structured AC waiver with ≥30 char reason, posts /ai-review ac-waiver"
+    },
+    {
+      "id": "trigger-2",
+      "input": "false positive AC — validator denkt kriterium fehlt, ist aber in PR-body drin",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, drafts AC waiver with ≥30 char justification, posts /ai-review ac-waiver"
+    },
+    {
+      "id": "trigger-3",
+      "input": "waive missing AC bitte, ist ein format-issue keine echte lücke",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, composes ac-waiver with ≥30 char reason, posts /ai-review ac-waiver"
+    },
+    {
+      "id": "trigger-4",
+      "input": "/ai-review ac-waiver — reason kommt gleich",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, prompts for ≥30 char reason, composes structured ac-waiver comment"
+    },
+    {
+      "id": "trigger-5",
+      "input": "AC nicht erkannt vom validator, schreib nen waiver",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, composes structured AC waiver with ≥30 char reason, posts /ai-review ac-waiver"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "security waiver für diese cve",
+      "expected_trigger": false,
+      "expected_output": "Uses security-waiver, not ac-waiver"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "skip AC validation entirely auf diesem repo",
+      "expected_trigger": false,
+      "expected_output": "Refuses — no blanket AC skip; ac-waiver requires scoped reason per finding"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "AC fordert test-coverage — add den fehlenden unit test",
+      "expected_trigger": false,
+      "expected_output": "Uses tdd-guard or code-change workflow, not ac-waiver"
+    }
+  ]
+}

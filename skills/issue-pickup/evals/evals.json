@@ -1,0 +1,55 @@
+{
+  "skill": "issue-pickup",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "pick up issue #42 bitte - gherkin parsen, branch anlegen, TDD TODOs rausziehen",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, fetches issue #42 via gh, parses gherkin, creates feature branch, drafts TDD-TODO list"
+    },
+    {
+      "id": "trigger-2",
+      "input": "start working on #117, ich will direkt mit dem ersten failing test anfangen",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, fetches #117, creates branch, extracts AC into TDD-TODOs, scaffolds first failing test"
+    },
+    {
+      "id": "trigger-3",
+      "input": "/issue-pickup 203",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, runs pickup workflow for issue 203: fetch, parse gherkin, branch, TDD plan"
+    },
+    {
+      "id": "trigger-4",
+      "input": "begin feature work on issue #9 - clone gherkin into a plan and branch out from main",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, checks out main, creates feature branch, parses gherkin into ordered TDD-TODOs"
+    },
+    {
+      "id": "trigger-5",
+      "input": "kann ich an issue 88 starten? mach alles ready - branch name nach convention, AC parsed, TODO-list",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, creates conventional-named branch, parses AC gherkin, generates TDD-TODO list"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "list all open issues assigned to me",
+      "expected_trigger": false,
+      "expected_output": "Uses gh issue list directly via Bash, not issue-pickup"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "create a new issue for the broken auth flow - titel 'Auth rotation breaks session'",
+      "expected_trigger": false,
+      "expected_output": "Uses gh issue create directly, not issue-pickup"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "close issue #42 mit kommentar 'done via PR #55'",
+      "expected_trigger": false,
+      "expected_output": "Uses gh issue close directly, not issue-pickup"
+    }
+  ]
+}

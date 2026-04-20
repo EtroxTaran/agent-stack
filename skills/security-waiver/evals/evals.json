@@ -1,0 +1,55 @@
+{
+  "skill": "security-waiver",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "security waiver für CVE-2024-1234 — ist false positive, wird nicht exploited",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, composes structured security waiver with ≥30 char reason and posts /ai-review security-waiver"
+    },
+    {
+      "id": "trigger-2",
+      "input": "waive this CVE finding in gemini scan, es betrifft nur devDependencies",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, drafts structured waiver with ≥30 char justification, posts /ai-review security-waiver"
+    },
+    {
+      "id": "trigger-3",
+      "input": "false positive in gemini scan — path-traversal wird durch middleware abgefangen",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, composes security waiver with ≥30 char reason explaining false positive, posts comment"
+    },
+    {
+      "id": "trigger-4",
+      "input": "/ai-review security-waiver — reason folgt",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, prompts for ≥30 char reason, composes structured security-waiver comment"
+    },
+    {
+      "id": "trigger-5",
+      "input": "kannst du nen security waiver schreiben? gemini meckert über die regex aber die läuft nur intern",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, composes structured security waiver with ≥30 char reason, posts /ai-review security-waiver"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "fix die vuln richtig — upgrade das package auf die gepatchte version",
+      "expected_trigger": false,
+      "expected_output": "Uses code-change workflow (npm update / manual patch), not security-waiver"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "ac-waiver für die fehlende checkbox bitte",
+      "expected_trigger": false,
+      "expected_output": "Uses ac-waiver, not security-waiver"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "skip all security checks on this PR, ist dringend",
+      "expected_trigger": false,
+      "expected_output": "Refuses — no blanket security bypass; security-waiver requires scoped reason per finding"
+    }
+  ]
+}

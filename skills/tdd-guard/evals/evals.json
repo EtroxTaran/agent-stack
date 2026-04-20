@@ -1,0 +1,55 @@
+{
+  "skill": "tdd-guard",
+  "version": "1.0.0",
+  "created": "2026-04-20",
+  "cases": [
+    {
+      "id": "trigger-1",
+      "input": "enforce TDD für das neue feature - will nicht dass wieder code vor tests geschrieben wird",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, activates TDD-guard: blocks feature code without prior failing test, enforces red-green-refactor"
+    },
+    {
+      "id": "trigger-2",
+      "input": "wie starte ich TDD für den neuen upload endpoint? erstes test file und red-green-refactor setup bitte",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, scaffolds failing test, walks through red-green-refactor cycle for endpoint"
+    },
+    {
+      "id": "trigger-3",
+      "input": "write test first for the preference-service - ich brauch den red-state bevor ich implementiere",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, writes failing AAA test, verifies red state, then hands off to implementation phase"
+    },
+    {
+      "id": "trigger-4",
+      "input": "TDD-guard aktivieren bitte, der letzte PR hatte code ohne vorherige tests",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, installs TDD-guard hook/blocker to prevent implementation without a prior failing test"
+    },
+    {
+      "id": "trigger-5",
+      "input": "red-green-refactor für einen neuen auth-middleware - guide mich durch den cycle",
+      "expected_trigger": true,
+      "expected_output": "Reads SKILL.md, drives red (failing test) → green (minimal impl) → refactor steps for middleware"
+    },
+    {
+      "id": "no-trigger-1",
+      "input": "npm run test:watch - schau mal welche tests gerade laufen",
+      "expected_trigger": false,
+      "expected_output": "Uses Bash directly to run tests, not tdd-guard"
+    },
+    {
+      "id": "no-trigger-2",
+      "input": "der test in parser.spec.ts failed mit timeout, finde den bug",
+      "expected_trigger": false,
+      "expected_output": "Uses debugging/coding-agent to fix the failing test, not tdd-guard"
+    },
+    {
+      "id": "no-trigger-3",
+      "input": "refactor den userService nach strategy pattern, die tests sind schon alle grün",
+      "expected_trigger": false,
+      "expected_output": "Uses coding-agent or refactor flow, not tdd-guard (no red-phase needed)"
+    }
+  ]
+}
