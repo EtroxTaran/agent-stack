@@ -11,7 +11,8 @@
 #   7. Finale Anweisungen ausgeben
 #
 # Voraussetzung:
-#   - ~/.openclaw/.env enthält DISCORD_BOT_TOKEN, DISCORD_GUILD_ID, N8N_API_KEY
+#   - ~/.config/ai-workflows/env (chmod 600) enthält DISCORD_BOT_TOKEN, DISCORD_GUILD_ID, N8N_API_KEY
+#     (Domain-getrennt von ~/.openclaw/.env; override via AI_WORKFLOWS_ENV)
 #   - tailscale is installed and authenticated on r2d2
 #   - docker + docker compose v2 installed
 
@@ -46,14 +47,14 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 OPS_DIR="$REPO_ROOT/ops"
 N8N_DIR="$OPS_DIR/n8n"
 BOT_DIR="$OPS_DIR/discord-bot"
-ENV_FILE="$HOME/.openclaw/.env"
+ENV_FILE="${AI_WORKFLOWS_ENV:-$HOME/.config/ai-workflows/env}"
 
 # ---------------------------------------------------------------------------
 # Schritt 0: Env-Datei laden
 # ---------------------------------------------------------------------------
 
 if [[ ! -f "$ENV_FILE" ]]; then
-    die "~/.openclaw/.env nicht gefunden. Bitte anlegen (siehe register-bot.md)."
+    die "env-file nicht gefunden: $ENV_FILE (chmod 600 anlegen — siehe ops/discord-bot/ENV-SOT.md)"
 fi
 
 # shellcheck source=/dev/null

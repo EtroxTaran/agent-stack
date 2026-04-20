@@ -7,10 +7,10 @@
 # Exportiert:
 #   - Alle Workflows als JSON (via n8n REST API)
 #   - Credential-IDs als Liste (keine Werte — Security!)
-#   - Paketiert als tarball in ~/.openclaw/backups/ops-n8n/
+#   - Paketiert als tarball in ~/ai-workflows/backups/ops-n8n/ (override via AI_WORKFLOWS_BACKUP_DIR)
 #
 # Benötigt:
-#   - N8N_API_KEY in ~/.openclaw/.env
+#   - N8N_API_KEY in ~/.config/ai-workflows/env (override via AI_WORKFLOWS_ENV)
 #   - ops-n8n Container läuft (http://127.0.0.1:5678 erreichbar)
 
 set -euo pipefail
@@ -28,13 +28,13 @@ log_error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()       { log_error "$*"; exit 1; }
 
 # Env laden
-ENV_FILE="$HOME/.openclaw/.env"
+ENV_FILE="${AI_WORKFLOWS_ENV:-$HOME/.config/ai-workflows/env}"
 # shellcheck source=/dev/null
 [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
 
 N8N_API_KEY="${N8N_API_KEY:-}"
 N8N_API_BASE="http://127.0.0.1:5678/api/v1"
-BACKUP_BASE="$HOME/.openclaw/backups/ops-n8n"
+BACKUP_BASE="${AI_WORKFLOWS_BACKUP_DIR:-$HOME/ai-workflows/backups/ops-n8n}"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="$BACKUP_BASE/$TIMESTAMP"
 

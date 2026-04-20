@@ -81,7 +81,7 @@ class DiscordClient:
             if not token:
                 raise EnvironmentError(
                     "DISCORD_BOT_TOKEN nicht gesetzt. "
-                    "Bitte in ~/.openclaw/.env oder als env-var exportieren."
+                    "Bitte in ~/.config/ai-workflows/env (chmod 600) oder als env-var exportieren."
                 )
         self.token = token
         self._headers = {

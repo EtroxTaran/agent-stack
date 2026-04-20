@@ -1,10 +1,13 @@
 version: "3.9"
 
-# ops-n8n — Globale Messaging-Bridge für AI-Review-Pipeline
+# ops-n8n — OPTIONALER separater n8n-Container für AI-Review-Messaging-Bridge
+# Aktuelles Deployment nutzt konsolidierte ai-portal-n8n (Plan A+, siehe ops/README.md).
+# Dieses File bleibt als Fallback falls saubere Container-Trennung später nötig wird.
+#
 # Port 5679 (5678 bleibt bei ai-portal-n8n für Business-Workflows)
 # Image: n8nio/n8n:latest (kein Custom-Build)
 # Volume: ops-n8n-data (Credentials + Workflow-Storage)
-# Env-File: ~/.openclaw/.env (geteilte Secrets)
+# Env-File: ~/.config/ai-workflows/env (AI-Workflows-Secrets, getrennt von OpenClaw)
 
 services:
   ops-n8n:
@@ -14,7 +17,7 @@ services:
     ports:
       - "5679:5678"
     env_file:
-      - ${HOME}/.openclaw/.env
+      - ${HOME}/.config/ai-workflows/env
     environment:
       # n8n interne Config
       N8N_HOST: "0.0.0.0"

@@ -10,20 +10,21 @@
 # Entweder DISCORD_PROJECTS env-var überschreiben, oder provision_channels.py
 # direkt mit eigenen --projects aufrufen.
 #
-# Required env:
-#   DISCORD_BOT_TOKEN  — Bot-Token aus Discord Dev Portal (in ~/.openclaw/.env)
-#   DISCORD_GUILD_ID   — Server-ID aus Discord Dev-Mode (in ~/.openclaw/.env)
+# Required env (Secrets-SoT: ~/.config/ai-workflows/env, chmod 600):
+#   DISCORD_BOT_TOKEN  — Bot-Token aus Discord Dev Portal
+#   DISCORD_GUILD_ID   — Server-ID aus Discord Dev-Mode
 #
 # Optional:
-#   DISCORD_PROJECTS   — CSV-Liste (Default: siehe PROJECTS_DEFAULT unten)
-#   DRY_RUN            — "1" für Preview ohne API-Writes
+#   DISCORD_PROJECTS    — CSV-Liste (Default: siehe PROJECTS_DEFAULT unten)
+#   DRY_RUN             — "1" für Preview ohne API-Writes
+#   AI_WORKFLOWS_ENV    — Pfad-Override (Default: ~/.config/ai-workflows/env)
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 readonly PROVISION_PY="${SCRIPT_DIR}/provision_channels.py"
-readonly ENV_FILE="${HOME}/.openclaw/.env"
+readonly ENV_FILE="${AI_WORKFLOWS_ENV:-${HOME}/.config/ai-workflows/env}"
 
 readonly PROJECTS_DEFAULT="ai-portal,ai-review-pipeline,agent-stack,nathan-cockpit,openclaw-office,research-workflow-n8n"
 

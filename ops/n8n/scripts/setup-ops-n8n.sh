@@ -7,8 +7,13 @@
 #
 # Benötigt:
 #   - docker + docker compose v2
-#   - N8N_API_KEY in ~/.openclaw/.env (nach erstem Start in n8n UI generieren)
+#   - N8N_API_KEY in ~/.config/ai-workflows/env (chmod 600) — nach erstem
+#     Start in n8n UI generieren. Override via AI_WORKFLOWS_ENV env-var.
 #   - WORKFLOWS_DIR: ops/n8n/workflows/ mit den 3 JSON-Files
+#
+# Hinweis: Dieses Script ist für den OPTIONALEN separaten ops-n8n Container
+# (Plan §290-307). Im aktuellen Deployment läuft AI-Review konsolidiert in
+# der bestehenden ai-portal-n8n (siehe ops/README.md + ops/scripts/restart-n8n-with-ai-review.sh).
 
 set -euo pipefail
 
@@ -28,7 +33,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 N8N_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMPOSE_FILE="$N8N_DIR/docker-compose.yml"
 WORKFLOWS_DIR="$N8N_DIR/workflows"
-ENV_FILE="$HOME/.openclaw/.env"
+ENV_FILE="${AI_WORKFLOWS_ENV:-$HOME/.config/ai-workflows/env}"
 
 # Flags
 IMPORT_ONLY=false
@@ -67,7 +72,7 @@ N8N_API_KEY="${N8N_API_KEY:-}"
 if [[ -z "$N8N_API_KEY" ]]; then
     log_warn "N8N_API_KEY nicht gesetzt."
     log_warn "Bitte in n8n UI generieren: Einstellungen → API → API Key erstellen"
-    log_warn "Dann N8N_API_KEY in ~/.openclaw/.env setzen und erneut ausführen."
+    log_warn "Dann N8N_API_KEY in $ENV_FILE setzen und erneut ausführen."
     log_warn "Workflows werden NICHT importiert."
     exit 0
 fi
