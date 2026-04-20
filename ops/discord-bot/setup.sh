@@ -145,7 +145,7 @@ log_ok "ops-n8n Container gestartet."
 
 log_info "=== Schritt 4: Warten auf ops-n8n Health ==="
 
-N8N_HEALTH_URL="http://127.0.0.1:5679/healthz"
+N8N_HEALTH_URL="http://127.0.0.1:5678/healthz"
 MAX_WAIT=60
 WAITED=0
 INTERVAL=3
@@ -182,8 +182,8 @@ log_ok "Workflows importiert."
 
 log_info "=== Schritt 6: Tailscale Funnel konfigurieren ==="
 
-log_info "Aktiviere Tailscale Funnel für /webhook/discord-interaction → localhost:5679 ..."
-sudo tailscale funnel --bg --set-path /webhook/discord-interaction localhost:5679
+log_info "Aktiviere Tailscale Funnel für /webhook/discord-interaction → localhost:5678 ..."
+sudo tailscale funnel --bg --set-path /webhook/discord-interaction localhost:5678
 log_ok "Tailscale Funnel aktiv."
 
 # Tailscale-Hostname ermitteln
@@ -211,8 +211,8 @@ echo "  Discord verifiziert den Endpoint sofort."
 echo ""
 echo "------------------------------------------------------------"
 echo "Kanäle erstellt für Projekte: $PROJECTS"
-echo "ops-n8n läuft auf:            http://127.0.0.1:5679"
-echo "n8n UI erreichbar via:        http://127.0.0.1:5679 (lokal)"
+echo "ops-n8n läuft auf:            http://127.0.0.1:5678"
+echo "n8n UI erreichbar via:        http://127.0.0.1:5678 (lokal)"
 echo "Tailscale Funnel URL:         $INTERACTIONS_URL"
 echo "------------------------------------------------------------"
 echo ""

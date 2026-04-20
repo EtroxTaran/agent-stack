@@ -11,7 +11,7 @@
 #
 # Benötigt:
 #   - N8N_API_KEY in ~/.openclaw/.env
-#   - ops-n8n Container läuft (http://127.0.0.1:5679 erreichbar)
+#   - ops-n8n Container läuft (http://127.0.0.1:5678 erreichbar)
 
 set -euo pipefail
 
@@ -33,7 +33,7 @@ ENV_FILE="$HOME/.openclaw/.env"
 [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
 
 N8N_API_KEY="${N8N_API_KEY:-}"
-N8N_API_BASE="http://127.0.0.1:5679/api/v1"
+N8N_API_BASE="http://127.0.0.1:5678/api/v1"
 BACKUP_BASE="$HOME/.openclaw/backups/ops-n8n"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="$BACKUP_BASE/$TIMESTAMP"
@@ -41,8 +41,8 @@ BACKUP_DIR="$BACKUP_BASE/$TIMESTAMP"
 mkdir -p "$BACKUP_DIR"
 
 # Erreichbarkeit prüfen
-if ! curl -sf "http://127.0.0.1:5679/healthz" &>/dev/null; then
-    die "ops-n8n nicht erreichbar (http://127.0.0.1:5679/healthz). Container läuft?"
+if ! curl -sf "http://127.0.0.1:5678/healthz" &>/dev/null; then
+    die "ops-n8n nicht erreichbar (http://127.0.0.1:5678/healthz). Container läuft?"
 fi
 
 if [[ -z "$N8N_API_KEY" ]]; then

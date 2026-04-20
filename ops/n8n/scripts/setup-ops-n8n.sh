@@ -47,10 +47,10 @@ if [[ "$IMPORT_ONLY" == "false" ]]; then
     log_ok "Container gestartet."
 
     # Auf Health warten
-    log_info "Warte auf ops-n8n Health (http://127.0.0.1:5679/healthz) ..."
+    log_info "Warte auf ops-n8n Health (http://127.0.0.1:5678/healthz) ..."
     MAX_WAIT=90
     WAITED=0
-    until curl -sf "http://127.0.0.1:5679/healthz" &>/dev/null; do
+    until curl -sf "http://127.0.0.1:5678/healthz" &>/dev/null; do
         [[ $WAITED -ge $MAX_WAIT ]] && die "ops-n8n nicht healthy nach ${MAX_WAIT}s. docker logs ops-n8n"
         echo -n "."
         sleep 3
@@ -61,7 +61,7 @@ if [[ "$IMPORT_ONLY" == "false" ]]; then
 fi
 
 # --- Schritt 2: Workflows importieren via n8n REST API ---
-N8N_API_BASE="http://127.0.0.1:5679/api/v1"
+N8N_API_BASE="http://127.0.0.1:5678/api/v1"
 N8N_API_KEY="${N8N_API_KEY:-}"
 
 if [[ -z "$N8N_API_KEY" ]]; then
