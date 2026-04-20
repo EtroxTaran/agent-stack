@@ -7,9 +7,15 @@
   },
   "pinData": {},
   "tags": [
-    { "name": "ai-review" },
-    { "name": "notifications" },
-    { "name": "discord" }
+    {
+      "name": "ai-review"
+    },
+    {
+      "name": "notifications"
+    },
+    {
+      "name": "discord"
+    }
   ],
   "nodes": [
     {
@@ -17,7 +23,10 @@
       "name": "Receive Escalation Payload",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 260],
+      "position": [
+        240,
+        260
+      ],
       "webhookId": "ai-review-escalation",
       "parameters": {
         "httpMethod": "POST",
@@ -31,9 +40,12 @@
       "name": "Format Discord Alert Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [540, 260],
+      "position": [
+        540,
+        260
+      ],
       "parameters": {
-        "jsCode": "// Baut eine Discord Alert-Message f\u00fcr den Eskalations-Channel.\n// Input-Schema (von discord_notify.py in ai-review-pipeline):\n//   body.alert_type   'escalation' | 'disagreement' | 'soft_consensus'\n//   body.pr           string | number\n//   body.pr_url       string\n//   body.project      string\n//   body.stage        string (f\u00fcr escalation)\n//   body.iterations   number\n//   body.last_score   number | null\n//   body.summary      string (max 500 Zeichen)\n//   body.runbook_url  string\n//   body.rerun_cmd    string\n//   body.codex        {verdict, score} (f\u00fcr disagreement)\n//   body.cursor       {verdict, score} (f\u00fcr disagreement)\n//   body.avg_score    number (f\u00fcr soft_consensus)\n//   body.codex_score  number (f\u00fcr soft_consensus)\n//   body.cursor_score number (f\u00fcr soft_consensus)\n//   body.options      {approve, retry, timeout_minutes} (f\u00fcr soft_consensus)\n//\n// Ziel-Channel: DISCORD_ALERTS_CHANNEL_ID (aus env) oder body.channel_id\n// Mention: @here bei echten Eskalationen\n\nconst body = $json.body ?? $json ?? {};\n\nconst alertType = body.alert_type ?? body.event ?? 'escalation';\nconst pr        = body.pr ?? '?';\nconst prUrl     = body.pr_url ?? '';\nconst project   = body.project ?? '';\nconst runbook   = body.runbook_url ?? '';\nconst rerun     = body.rerun_cmd ?? '';\n\n// Channel: explizit im Payload oder Fallback auf ALERTS_CHANNEL_ID env-var\nconst channelId = String(\n  body.channel_id ??\n  $env.DISCORD_ALERTS_CHANNEL_ID ??\n  ''\n);\n\nif (!channelId) {\n  throw new Error(\n    'channel_id fehlt im Payload und DISCORD_ALERTS_CHANNEL_ID nicht gesetzt. ' +\n    'Bitte .ai-review/config.yaml oder ~/.openclaw/.env pr\u00fcfen.'\n  );\n}\n\nconst stageEmoji = {\n  code: '\\ud83e\\udd16',\n  'code-cursor': '\\ud83d\\udc31',\n  security: '\\ud83d\\udd12',\n  design: '\\ud83c\\udfa8',\n};\n\nlet content;\nlet shouldMention = true;  // @here bei echten Eskalationen\n\nif (alertType === 'soft_consensus' || alertType === 'ai-review/soft-consensus') {\n  shouldMention = false;  // soft_consensus = keine @here-Mention\n  const codexScore  = body.codex_score ?? '-';\n  const cursorScore = body.cursor_score ?? '-';\n  const avg         = body.avg_score ?? '?';\n  const opts        = body.options ?? {};\n\n  content = [\n    `\\u{1F914} **AI-Review soft-consensus** \\u2014 PR #${pr}`,\n    project ? `Projekt: \\`${project}\\`` : '',\n    '',\n    `\\u{1F916} Codex: **${codexScore}/10**`,\n    `\\ud83d\\udc31 Cursor: **${cursorScore}/10**`,\n    `\\ud83d\\udcca Avg: **${avg}/10** (soft-zone 5\\u20138)`,\n    '',\n    'Die Code-Reviewer sehen es differenziert. Bitte kurz reinschauen.',\n    '',\n    prUrl ? `**PR:** ${prUrl}` : '',\n    '',\n    opts.approve ? `\\u2705 Approve: \\`${opts.approve}\\`` : '',\n    opts.retry   ? `\\ud83d\\udd01 Retry: \\`${opts.retry}\\`` : '',\n    opts.timeout_minutes ? `\\u23f1\\ufe0f Auto-Eskalation in ${opts.timeout_minutes} min` : '',\n    runbook ? `\\ud83d\\udcd6 Runbook: ${runbook}` : '',\n  ].filter(Boolean).join('\\n');\n\n} else if (alertType === 'disagreement' || alertType === 'ai-review/disagreement') {\n  const codex  = body.codex ?? {};\n  const cursor = body.cursor ?? {};\n  const fmt    = r => `${r.verdict ?? '?'} (${r.score ?? '-'}/10)`;\n\n  content = [\n    `\\u{1F914} **AI-Review Disagreement** \\u2014 PR #${pr}`,\n    project ? `Projekt: \\`${project}\\`` : '',\n    '@here',\n    '',\n    `\\u{1F916} Codex: **${fmt(codex)}**`,\n    `\\ud83d\\udc31 Cursor: **${fmt(cursor)}**`,\n    '',\n    'Die beiden Code-Reviewer sind uneinig. Bitte kurz reinschauen.',\n    '',\n    prUrl ? `**PR:** ${prUrl}` : '',\n    rerun   ? `\\u2022 Re-Trigger: \\`${rerun}\\`` : '',\n    runbook ? `\\u2022 Runbook: ${runbook}` : '',\n  ].filter(Boolean).join('\\n');\n\n} else {\n  // Standard: Circuit-Breaker Eskalation\n  const stage      = body.stage ?? 'unknown';\n  const iterations = body.iterations ?? '?';\n  const lastScore  = body.last_score ?? null;\n  const summary    = String(body.summary ?? '').slice(0, 500);\n  const stageE     = stageEmoji[stage] || '\\u2699\\ufe0f';\n  const scoreLine  = lastScore !== null && lastScore !== undefined\n    ? `**Score:** ${lastScore}/10`\n    : '';\n\n  content = [\n    `\\u26a0\\ufe0f **AI Review Escalation** @here`,\n    project ? `Projekt: \\`${project}\\`` : '',\n    '',\n    `${stageE} **Stage:** ${stage}`,\n    `**PR:** #${pr}`,\n    scoreLine,\n    `**Iterations:** ${iterations} (circuit-breaker)`,\n    '',\n    summary ? `**Letzter Hinweis:**\\n\\`\\`\\`\\n${summary}\\n\\`\\`\\`` : '',\n    '',\n    prUrl   ? `**PR:** ${prUrl}` : '',\n    rerun   ? `\\u2022 Re-Trigger: \\`${rerun}\\`` : '',\n    runbook ? `\\u2022 Runbook: ${runbook}` : '',\n  ].filter(Boolean).join('\\n');\n}\n\nreturn [{\n  json: {\n    channel_id: channelId,\n    content,\n    alert_type: alertType,\n    pr_number: String(pr),\n  },\n}];\n"
+        "jsCode": "// Baut eine Discord Alert-Message f\u00fcr den Eskalations-Channel.\n// Input-Schema (von discord_notify.py in ai-review-pipeline):\n//   body.alert_type   'escalation' | 'disagreement' | 'soft_consensus'\n//   body.pr           string | number\n//   body.pr_url       string\n//   body.project      string\n//   body.stage        string (f\u00fcr escalation)\n//   body.iterations   number\n//   body.last_score   number | null\n//   body.summary      string (max 500 Zeichen)\n//   body.runbook_url  string\n//   body.rerun_cmd    string\n//   body.codex        {verdict, score} (f\u00fcr disagreement)\n//   body.cursor       {verdict, score} (f\u00fcr disagreement)\n//   body.avg_score    number (f\u00fcr soft_consensus)\n//   body.codex_score  number (f\u00fcr soft_consensus)\n//   body.cursor_score number (f\u00fcr soft_consensus)\n//   body.options      {approve, retry, timeout_minutes} (f\u00fcr soft_consensus)\n//\n// Ziel-Channel: DISCORD_ALERTS_CHANNEL_ID (aus env) oder body.channel_id\n// Mention: @here bei echten Eskalationen\n\nconst body = $json.body ?? $json ?? {};\n\nconst alertType = body.alert_type ?? body.event ?? 'escalation';\nconst pr        = body.pr ?? '?';\nconst prUrl     = body.pr_url ?? '';\nconst project   = body.project ?? '';\nconst runbook   = body.runbook_url ?? '';\nconst rerun     = body.rerun_cmd ?? '';\n\n// Channel: explizit im Payload oder Fallback auf ALERTS_CHANNEL_ID env-var\nconst channelId = String(\n  body.channel_id ??\n  $env.DISCORD_ALERTS_CHANNEL_ID ??\n  ''\n);\n\nif (!channelId) {\n  throw new Error(\n    'channel_id fehlt im Payload und DISCORD_ALERTS_CHANNEL_ID nicht gesetzt. ' +\n    'Bitte .ai-review/config.yaml oder ~/.config/ai-workflows/env pr\u00fcfen.'\n  );\n}\n\nconst stageEmoji = {\n  code: '\\ud83e\\udd16',\n  'code-cursor': '\\ud83d\\udc31',\n  security: '\\ud83d\\udd12',\n  design: '\\ud83c\\udfa8',\n};\n\nlet content;\nlet shouldMention = true;  // @here bei echten Eskalationen\n\nif (alertType === 'soft_consensus' || alertType === 'ai-review/soft-consensus') {\n  shouldMention = false;  // soft_consensus = keine @here-Mention\n  const codexScore  = body.codex_score ?? '-';\n  const cursorScore = body.cursor_score ?? '-';\n  const avg         = body.avg_score ?? '?';\n  const opts        = body.options ?? {};\n\n  content = [\n    `\\u{1F914} **AI-Review soft-consensus** \\u2014 PR #${pr}`,\n    project ? `Projekt: \\`${project}\\`` : '',\n    '',\n    `\\u{1F916} Codex: **${codexScore}/10**`,\n    `\\ud83d\\udc31 Cursor: **${cursorScore}/10**`,\n    `\\ud83d\\udcca Avg: **${avg}/10** (soft-zone 5\\u20138)`,\n    '',\n    'Die Code-Reviewer sehen es differenziert. Bitte kurz reinschauen.',\n    '',\n    prUrl ? `**PR:** ${prUrl}` : '',\n    '',\n    opts.approve ? `\\u2705 Approve: \\`${opts.approve}\\`` : '',\n    opts.retry   ? `\\ud83d\\udd01 Retry: \\`${opts.retry}\\`` : '',\n    opts.timeout_minutes ? `\\u23f1\\ufe0f Auto-Eskalation in ${opts.timeout_minutes} min` : '',\n    runbook ? `\\ud83d\\udcd6 Runbook: ${runbook}` : '',\n  ].filter(Boolean).join('\\n');\n\n} else if (alertType === 'disagreement' || alertType === 'ai-review/disagreement') {\n  const codex  = body.codex ?? {};\n  const cursor = body.cursor ?? {};\n  const fmt    = r => `${r.verdict ?? '?'} (${r.score ?? '-'}/10)`;\n\n  content = [\n    `\\u{1F914} **AI-Review Disagreement** \\u2014 PR #${pr}`,\n    project ? `Projekt: \\`${project}\\`` : '',\n    '@here',\n    '',\n    `\\u{1F916} Codex: **${fmt(codex)}**`,\n    `\\ud83d\\udc31 Cursor: **${fmt(cursor)}**`,\n    '',\n    'Die beiden Code-Reviewer sind uneinig. Bitte kurz reinschauen.',\n    '',\n    prUrl ? `**PR:** ${prUrl}` : '',\n    rerun   ? `\\u2022 Re-Trigger: \\`${rerun}\\`` : '',\n    runbook ? `\\u2022 Runbook: ${runbook}` : '',\n  ].filter(Boolean).join('\\n');\n\n} else {\n  // Standard: Circuit-Breaker Eskalation\n  const stage      = body.stage ?? 'unknown';\n  const iterations = body.iterations ?? '?';\n  const lastScore  = body.last_score ?? null;\n  const summary    = String(body.summary ?? '').slice(0, 500);\n  const stageE     = stageEmoji[stage] || '\\u2699\\ufe0f';\n  const scoreLine  = lastScore !== null && lastScore !== undefined\n    ? `**Score:** ${lastScore}/10`\n    : '';\n\n  content = [\n    `\\u26a0\\ufe0f **AI Review Escalation** @here`,\n    project ? `Projekt: \\`${project}\\`` : '',\n    '',\n    `${stageE} **Stage:** ${stage}`,\n    `**PR:** #${pr}`,\n    scoreLine,\n    `**Iterations:** ${iterations} (circuit-breaker)`,\n    '',\n    summary ? `**Letzter Hinweis:**\\n\\`\\`\\`\\n${summary}\\n\\`\\`\\`` : '',\n    '',\n    prUrl   ? `**PR:** ${prUrl}` : '',\n    rerun   ? `\\u2022 Re-Trigger: \\`${rerun}\\`` : '',\n    runbook ? `\\u2022 Runbook: ${runbook}` : '',\n  ].filter(Boolean).join('\\n');\n}\n\nreturn [{\n  json: {\n    channel_id: channelId,\n    content,\n    alert_type: alertType,\n    pr_number: String(pr),\n  },\n}];\n"
       }
     },
     {
@@ -41,21 +53,32 @@
       "name": "POST Alert to Discord Alerts Channel",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [860, 260],
+      "position": [
+        860,
+        260
+      ],
       "parameters": {
         "method": "POST",
         "url": "={{ 'https://discord.com/api/v10/channels/' + $json.channel_id + '/messages' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bot {{ $env.DISCORD_BOT_TOKEN }}" },
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Authorization",
+              "value": "=Bot {{ $env.DISCORD_BOT_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { content: $json.content } }}",
-        "options": { "timeout": 10000 }
+        "options": {
+          "timeout": 10000
+        }
       }
     },
     {
@@ -63,7 +86,10 @@
       "name": "Respond 200 OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1160, 260],
+      "position": [
+        1160,
+        260
+      ],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ { ok: true, delivered_at: new Date().toISOString(), alert_type: $('Format Discord Alert Message').item.json.alert_type, pr: $('Format Discord Alert Message').item.json.pr_number } }}"
@@ -74,21 +100,33 @@
     "Receive Escalation Payload": {
       "main": [
         [
-          { "node": "Format Discord Alert Message", "type": "main", "index": 0 }
+          {
+            "node": "Format Discord Alert Message",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Format Discord Alert Message": {
       "main": [
         [
-          { "node": "POST Alert to Discord Alerts Channel", "type": "main", "index": 0 }
+          {
+            "node": "POST Alert to Discord Alerts Channel",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "POST Alert to Discord Alerts Channel": {
       "main": [
         [
-          { "node": "Respond 200 OK", "type": "main", "index": 0 }
+          {
+            "node": "Respond 200 OK",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }
