@@ -7,9 +7,10 @@
 #   3. dotbot     — legt alle Symlinks an
 #   4. mcp        — registriert MCP-Server pro CLI
 #   5. gh-ext     — installiert ai-review gh extension (optional)
+#   5b. ai-review-pipeline  — installiert pip-Paket (nur mit --with-ai-review)
 #   6. verify     — Post-Install Sanity-Check
 #
-# Usage: ./install.sh
+# Usage: ./install.sh [--with-ai-review] [--help]
 
 set -euo pipefail
 
@@ -77,6 +78,10 @@ _on_error() {
         verify)
             printf '    Run scripts/verify.sh directly for detailed report.\n' >&2
             ;;
+        ai-review-pipeline)
+            printf '    Run scripts/install-ai-review-pipeline.sh directly for detailed output.\n' >&2
+            printf '    Ensure pip/pip3 is installed and ~/projects/ai-review-pipeline exists (dev fallback).\n' >&2
+            ;;
         *)
             printf '    Re-run with: bash -x ./install.sh  (for verbose trace)\n' >&2
             ;;
@@ -84,6 +89,39 @@ _on_error() {
     exit "${exit_code}"
 }
 trap '_on_error "${LINENO}" "${BASH_COMMAND}"' ERR
+
+# ----------------------------------------------------------------------------
+# Argument Parsing
+# ----------------------------------------------------------------------------
+WITH_AI_REVIEW=false
+
+_usage() {
+    printf 'Usage: %s [OPTIONS]\n\n' "$(basename "$0")"
+    printf 'Bootstrap agent-stack: symlinks, MCP-Server, gh extensions, optional integrations.\n\n'
+    printf 'Options:\n'
+    printf '  --with-ai-review   Installiert ai-review-pipeline als pip-Paket nach dem\n'
+    printf '                     gh-Extension-Schritt. Versucht zuerst PyPI-Install;\n'
+    printf '                     Fallback auf ~/projects/ai-review-pipeline (Dev-Repo).\n'
+    printf '                     Smoke-test: ai-review --version muss Exit 0 liefern.\n'
+    printf '  --help, -h         Zeigt diese Hilfe an.\n'
+    exit 0
+}
+
+for arg in "$@"; do
+    case "${arg}" in
+        --with-ai-review)
+            WITH_AI_REVIEW=true
+            ;;
+        --help|-h)
+            _usage
+            ;;
+        *)
+            printf 'Unknown option: %s\n' "${arg}" >&2
+            printf 'Run with --help for usage.\n' >&2
+            exit 2
+            ;;
+    esac
+done
 
 # ----------------------------------------------------------------------------
 # Working dir == repo root
@@ -96,6 +134,9 @@ printf '┃  agent-stack bootstrap                   ┃\n'
 printf '┃  %sidempotent · safe to re-run%s%s           ┃\n' "${C_DIM}" "${C_RESET}" "${C_BOLD}${C_CYAN}"
 printf '┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛%s\n' "${C_RESET}"
 printf '%sRepo:%s %s\n' "${C_DIM}" "${C_RESET}" "${SCRIPT_DIR}"
+if [[ "${WITH_AI_REVIEW}" == "true" ]]; then
+    printf '%sMode:%s --with-ai-review (ai-review-pipeline pip-Install aktiviert)\n' "${C_DIM}" "${C_RESET}"
+fi
 
 # ----------------------------------------------------------------------------
 # 1. Preflight
@@ -167,6 +208,16 @@ if command -v gh >/dev/null 2>&1; then
     fi
 else
     _warn "gh CLI not available — skipping extension install"
+fi
+
+# ----------------------------------------------------------------------------
+# 5b. Install ai-review-pipeline pip package (optional, nur mit --with-ai-review)
+# ----------------------------------------------------------------------------
+CURRENT_STEP="ai-review-pipeline"
+if [[ "${WITH_AI_REVIEW}" == "true" ]]; then
+    _section "5b" "ai-review-pipeline — pip install (optional)"
+    bash "${SCRIPT_DIR}/scripts/install-ai-review-pipeline.sh"
+    _ok "ai-review-pipeline installed"
 fi
 
 # ----------------------------------------------------------------------------
