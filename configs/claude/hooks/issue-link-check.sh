@@ -5,6 +5,8 @@
 
 set -u  # kein -e: Warn-Hook darf nie harte Fehler werfen
 
+# stdin muss drained werden (Claude-Code Hook-Contract), Inhalt nicht benötigt
+# shellcheck disable=SC2034  # INPUT wird künftig für tool-specific branch-checks ausgewertet
 INPUT="$(cat)"
 
 # Außerhalb eines Git-Repos → nichts zu tun
