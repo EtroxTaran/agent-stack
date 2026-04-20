@@ -37,6 +37,7 @@ for arg in "$@"; do
 done
 
 # Env laden
+# shellcheck source=/dev/null
 [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
 
 # --- Schritt 1: Container starten (wenn nicht --import-only) ---
@@ -96,18 +97,20 @@ for wf_file in "$WORKFLOWS_DIR"/*.json; do
 
         # Workflow aktivieren
         if [[ "$WF_ID" != "?" ]]; then
-            curl -s -o /dev/null \
+            if curl -s -o /dev/null \
                 -X PATCH \
                 -H "X-N8N-API-KEY: $N8N_API_KEY" \
                 -H "Content-Type: application/json" \
                 -d '{"active": true}' \
-                "$N8N_API_BASE/workflows/$WF_ID" 2>/dev/null \
-                && log_ok "    $wf_name aktiviert." \
-                || log_warn "    $wf_name konnte nicht aktiviert werden (Aktivierung separat in n8n UI nötig)."
+                "$N8N_API_BASE/workflows/$WF_ID" 2>/dev/null; then
+                log_ok "    $wf_name aktiviert."
+            else
+                log_warn "    $wf_name konnte nicht aktiviert werden (Aktivierung separat in n8n UI nötig)."
+            fi
         fi
     else
         log_error "    $wf_name fehlgeschlagen (HTTP $HTTP_STATUS)"
-        cat /tmp/n8n-import-response.json 2>/dev/null | python3 -m json.tool 2>/dev/null || true
+        python3 -m json.tool < /tmp/n8n-import-response.json 2>/dev/null || true
         FAILED=$((FAILED + 1))
     fi
 done

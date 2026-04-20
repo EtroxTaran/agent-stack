@@ -29,6 +29,7 @@ die()       { log_error "$*"; exit 1; }
 
 # Env laden
 ENV_FILE="$HOME/.openclaw/.env"
+# shellcheck source=/dev/null
 [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
 
 N8N_API_KEY="${N8N_API_KEY:-}"
@@ -113,9 +114,9 @@ log_ok "Tarball: $TARBALL"
 rm -rf "$BACKUP_DIR"
 
 # --- Alte Backups bereinigen (älter als 30 Tage) ---
-find "$BACKUP_BASE" -name "ops-n8n-backup-*.tar.gz" -mtime +30 -delete 2>/dev/null \
-    && log_info "Alte Backups (>30 Tage) bereinigt." \
-    || true
+if find "$BACKUP_BASE" -name "ops-n8n-backup-*.tar.gz" -mtime +30 -delete 2>/dev/null; then
+    log_info "Alte Backups (>30 Tage) bereinigt."
+fi
 
 log_ok "Backup abgeschlossen: $TARBALL"
 log_info "Inhalt: $WF_COUNT Workflows, Credential-IDs (ohne Werte)"
