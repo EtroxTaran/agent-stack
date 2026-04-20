@@ -1,0 +1,16 @@
+# Codex CLI Konfiguration — Teil des agent-stack
+# Symlink-Ziel: ~/.codex/config.toml
+
+[model]
+name = "gpt-5"
+effort = "medium"
+
+[sandbox]
+mode = "workspace-write"
+approval = "never"
+
+[project_doc]
+max_bytes = 65536
+fallback_filenames = ["AGENTS.md", "CODEX.md"]
+
+# [mcp_servers.<name>] wird per register.sh eingetragen

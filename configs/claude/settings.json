@@ -1,0 +1,112 @@
+{
+  "model": "opus",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "0",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "32000",
+    "ENABLE_TOOL_SEARCH": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(*)"
+    ],
+    "deny": [
+      "Bash(rm *)",
+      "Bash(sudo *)",
+      "Bash(dd *)",
+      "Bash(mkfs *)",
+      "Bash(fdisk *)",
+      "Bash(git push --force*)",
+      "Bash(git push *--force*)",
+      "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git reset --hard*)",
+      "Bash(curl * | bash*)",
+      "Bash(curl * | sh*)",
+      "Bash(wget * | bash*)",
+      "Bash(wget * | sh*)",
+      "Bash(curl * | sudo *)",
+      "Bash(wget * | sudo *)",
+      "Bash(shutdown*)",
+      "Bash(reboot*)",
+      "Bash(halt*)",
+      "Bash(poweroff*)",
+      "Bash(chmod -R 777 *)",
+      "Bash(chown -R * /*)",
+      "Bash(bash -i >& /dev/tcp/*)",
+      "Bash(nc -l*)",
+      "Bash(nmap *)",
+      "Bash(env | base64*)",
+      "Bash(printenv | base64*)",
+      "Bash(curl http://169.254.169.254/*)",
+      "Bash(wget http://169.254.169.254/*)",
+      "Bash(docker run --privileged *)",
+      "Bash(docker run -v /:/host *)",
+      "Bash(docker system prune -af)",
+      "Edit(~/.bashrc)",
+      "Edit(~/.zshrc)",
+      "Edit(~/.profile)",
+      "Edit(~/.ssh/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.git-credentials)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.kube/**)",
+      "Read(~/.npmrc)",
+      "Read(**/.env)",
+      "Read(**/.env.*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/block-dangerous.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/issue-link-check.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/format-on-write.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/stop-completion-gate.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true
+  },
+  "voiceEnabled": true,
+  "skipDangerousModePermissionPrompt": true
+}

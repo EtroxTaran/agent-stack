@@ -1,0 +1,53 @@
+name: shellcheck
+
+on:
+  pull_request:
+    paths:
+      - "**/*.sh"
+      - ".github/workflows/shellcheck.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y shellcheck
+          shellcheck --version
+
+      - name: Run shellcheck
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          files=()
+
+          [ -f install.sh ] && files+=("install.sh")
+
+          for f in scripts/*.sh; do files+=("$f"); done
+          [ -f mcp/register.sh ] && files+=("mcp/register.sh")
+          for f in configs/claude/hooks/*.sh; do files+=("$f"); done
+          for f in ops/n8n/scripts/*.sh; do files+=("$f"); done
+          for f in tests/*.sh; do files+=("$f"); done
+
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No shell scripts to check."
+            exit 0
+          fi
+
+          echo "Running shellcheck on:"
+          printf '  %s\n' "${files[@]}"
+
+          # -x ermöglicht `source ...`-Resolution über Files hinweg
+          # SC1091 = include nicht gefunden (oft bei sourced ~/.openclaw/.env)
+          shellcheck -x -e SC1091 "${files[@]}"

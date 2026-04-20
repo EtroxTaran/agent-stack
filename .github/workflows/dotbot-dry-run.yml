@@ -1,0 +1,121 @@
+name: dotbot-dry-run
+
+on:
+  pull_request:
+    paths:
+      - "install.conf.yaml"
+      - ".github/workflows/dotbot-dry-run.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-manifest:
+    name: Validate install.conf.yaml
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML
+        run: pip install --no-cache-dir "pyyaml==6.0.2"
+
+      - name: Parse + structural validation
+        run: |
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+
+          import yaml
+
+          MANIFEST = Path("install.conf.yaml")
+          ALLOWED_KEYS = {"defaults", "create", "link", "shell", "clean"}
+
+          if not MANIFEST.is_file():
+              print(f"::error::{MANIFEST} not found")
+              sys.exit(1)
+
+          try:
+              data = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
+          except yaml.YAMLError as exc:
+              print(f"::error::YAML parse error: {exc}")
+              sys.exit(1)
+
+          if not isinstance(data, list):
+              print(f"::error::install.conf.yaml must be a top-level list of directives")
+              sys.exit(1)
+
+          errors: list[str] = []
+          seen_link_targets: set[str] = set()
+
+          for idx, item in enumerate(data):
+              if not isinstance(item, dict):
+                  errors.append(f"item[{idx}]: not a mapping: {item!r}")
+                  continue
+              if len(item) != 1:
+                  errors.append(
+                      f"item[{idx}]: must have exactly one top-level key, got {list(item)}"
+                  )
+                  continue
+              key = next(iter(item))
+              if key not in ALLOWED_KEYS:
+                  errors.append(
+                      f"item[{idx}]: unknown directive '{key}' (allowed: {sorted(ALLOWED_KEYS)})"
+                  )
+                  continue
+              body = item[key]
+
+              if key == "defaults":
+                  if not isinstance(body, dict):
+                      errors.append(f"item[{idx}].defaults: expected mapping, got {type(body).__name__}")
+              elif key == "create":
+                  if not isinstance(body, list):
+                      errors.append(f"item[{idx}].create: expected list, got {type(body).__name__}")
+                  else:
+                      for p in body:
+                          if not isinstance(p, str) or not p.strip():
+                              errors.append(f"item[{idx}].create: invalid path entry {p!r}")
+              elif key == "link":
+                  if not isinstance(body, dict):
+                      errors.append(f"item[{idx}].link: expected mapping, got {type(body).__name__}")
+                  else:
+                      for target, spec in body.items():
+                          if target in seen_link_targets:
+                              errors.append(f"item[{idx}].link: duplicate target '{target}'")
+                          seen_link_targets.add(target)
+                          if isinstance(spec, str):
+                              continue
+                          if not isinstance(spec, dict):
+                              errors.append(
+                                  f"item[{idx}].link['{target}']: must be string or mapping"
+                              )
+                              continue
+                          if "path" not in spec:
+                              errors.append(
+                                  f"item[{idx}].link['{target}']: missing required 'path' key"
+                              )
+              elif key == "shell":
+                  if not isinstance(body, list):
+                      errors.append(f"item[{idx}].shell: expected list, got {type(body).__name__}")
+              elif key == "clean":
+                  if not isinstance(body, (list, dict)):
+                      errors.append(f"item[{idx}].clean: expected list or mapping, got {type(body).__name__}")
+
+          if errors:
+              print("::error::install.conf.yaml validation failed:")
+              for e in errors:
+                  print(f"  - {e}")
+              sys.exit(1)
+
+          link_count = sum(len(item.get("link", {})) for item in data if "link" in item)
+          create_count = sum(len(item.get("create", [])) for item in data if "create" in item)
+          print(
+              f"OK: {len(data)} directives · {create_count} create-paths · {link_count} link-targets"
+          )
+          PY

@@ -1,0 +1,62 @@
+# .ai-review/config.yaml — per-project override for the AI-Review-Pipeline
+# Defaults come from the ai-review-pipeline package; overrides here.
+
+version: 1
+
+stages:
+  code:
+    enabled: true
+    reviewer: codex
+    model: gpt-5.4
+  code-cursor:
+    enabled: true
+    reviewer: cursor
+    model: composer-2
+  security:
+    enabled: true
+    reviewer: gemini
+    model: gemini-2.5-pro
+  design:
+    enabled: true
+    reviewer: claude
+    model: claude-opus-4-7
+    skip_when_no_ui: true
+  ac_validation:
+    enabled: true
+    reviewer: codex           # Primary
+    second_opinion: claude
+    model: gpt-5.4
+    fail_closed_on_missing_issue: true
+
+consensus:
+  confidence_weighted: true
+  thresholds:
+    success: 8                # avg >= 8 -> success
+    soft: 5                   # 5 <= avg < 8 -> Nachfrage
+    # else -> failure
+
+fix_loops:
+  in_stage:
+    enabled: true
+    max_iter: 3
+    score_trend_gate: true
+  cross_stage:
+    enabled: true
+    max_files: 10
+    path_whitelist:
+      - "src/**"
+      - "app/**"
+      - "plugins/**/src/**"
+
+notifications:
+  target: discord
+  discord:
+    channel_id: ""            # fill via `gh secret set DISCORD_CHANNEL_ID`
+    mention_role: "@here"
+    sticky_message: true
+
+waivers:
+  security_waiver:
+    min_reason_length: 30
+  ac_waiver:
+    min_reason_length: 30

@@ -1,0 +1,43 @@
+name: validate-mcp
+
+on:
+  pull_request:
+    paths:
+      - "mcp/**"
+      - "tests/test_mcp_servers.sh"
+      - ".github/workflows/validate-mcp.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate mcp/servers.yaml
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install yq (Mike Farah, v4+)
+        run: |
+          set -euo pipefail
+          YQ_VERSION="v4.44.3"
+          sudo curl -fsSL -o /usr/local/bin/yq \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Run schema validator
+        run: |
+          set -euo pipefail
+          chmod +x tests/test_mcp_servers.sh
+          bash tests/test_mcp_servers.sh
+
+      - name: yq schema-check (basic structure)
+        run: |
+          set -euo pipefail
+          yq eval '.version' mcp/servers.yaml >/dev/null
+          yq eval '.servers | length' mcp/servers.yaml >/dev/null
+          yq eval '.servers[] | .name, .transport, .clis' mcp/servers.yaml >/dev/null
+          echo "OK: yq schema-check passed"

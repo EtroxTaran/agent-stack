@@ -1,0 +1,122 @@
+# ---------------------------------------------------------------------------
+# MCP-Server Registry (declarative, single source of truth)
+# ---------------------------------------------------------------------------
+# Wird von mcp/register.sh geparst (yq v4+, TOML/JSON output).
+#
+# Schema:
+#   version:     Schema-Version (int)
+#   servers[]:
+#     name:      eindeutiger Server-Name (string, required)
+#     transport: "stdio" | "http" | "sse"   (required)
+#     command:   executable für stdio-Transport (string, required wenn stdio)
+#     args:      Argument-Liste (list<string>, optional)
+#     url:       Endpoint für http/sse-Transport (string, required wenn http/sse)
+#     env:       Map<string,string> von Env-Vars (Werte als ${VAR}-Placeholder)
+#     clis:      Liste der CLIs, in denen dieser Server registriert wird
+#                Erlaubt: claude | cursor | gemini | codex
+#
+# Secret-Regel: Nur ${VAR}-Placeholder, nie echte Tokens. register.sh sourced
+#               ~/.openclaw/.env und substituiert zur Laufzeit via envsubst.
+#
+# npx-Regel (CLAUDE.md "Always Latest"): ALLE npx-Pakete mit @latest pinnen.
+# ---------------------------------------------------------------------------
+version: 1
+
+servers:
+  # ---- GitHub MCP (Issues, PRs, Code-Search) ------------------------------
+  - name: github
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-github@latest"
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN}"
+    clis: [claude, cursor, gemini, codex]
+
+  # ---- Filesystem MCP (scoped auf ~/projects) -----------------------------
+  # Arg ist Pfad, der für die MCP sichtbar sein soll.
+  # $HOME wird von register.sh via envsubst ersetzt (POSIX shell-konform).
+  - name: filesystem
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem@latest"
+      - "${HOME}/projects"
+    env: {}
+    clis: [claude, cursor, gemini, codex]
+
+  # ---- Context7 MCP (aktuelle Library-Docs) -------------------------------
+  - name: context7
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@upstash/context7-mcp@latest"
+    env: {}
+    clis: [claude, cursor, gemini, codex]
+
+  # ---- Brave Search MCP (strukturierte Web-Suche) -------------------------
+  - name: brave-search
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "mcp-server-brave-search@latest"
+    env:
+      BRAVE_API_KEY: "${BRAVE_API_KEY}"
+    clis: [claude, gemini]
+
+  # ---- Perplexity MCP (Deep-Research, nur Claude) -------------------------
+  - name: perplexity
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "server-perplexity-ask@latest"
+    env:
+      PERPLEXITY_API_KEY: "${PERPLEXITY_API_KEY}"
+    clis: [claude]
+
+  # ---- Sequential Thinking MCP (multi-step reasoning) ---------------------
+  - name: sequential-thinking
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-sequential-thinking@latest"
+    env: {}
+    clis: [claude, cursor, gemini, codex]
+
+  # ---- Knowledge Graph MCP (shared memory Claude <-> Cursor) --------------
+  # Persistenz-Datei wird mit Cursor geteilt (siehe CLAUDE.md).
+  - name: knowledge-graph
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@itseasy21/mcp-knowledge-graph@latest"
+      - "--memory-path"
+      - "/home/clawd/.cursor/memory/global.jsonl"
+    env: {}
+    clis: [claude, cursor]
+
+  # ---- Playwright MCP (Browser/E2E) ---------------------------------------
+  - name: playwright
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@playwright/mcp@latest"
+    env: {}
+    clis: [claude, cursor]
+
+  # ---- n8n MCP (HTTP-Transport, ops-n8n auf r2d2 via Tailscale) -----------
+  # URL: ops-n8n läuft auf r2d2.tail4fc6dd.ts.net, Port 5679 (getrennt von
+  # ai-portal-n8n auf :5678). Siehe Plan "Runtime-Topologie".
+  - name: n8n
+    transport: http
+    url: "http://100.104.238.19:5679/mcp-server/http"
+    env: {}
+    clis: [claude]

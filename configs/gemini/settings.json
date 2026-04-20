@@ -1,0 +1,41 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "tools": {
+    "shell": {
+      "showColor": true
+    },
+    "autoAccept": true,
+    "toolOutputMasking": {
+      "enabled": true
+    }
+  },
+  "general": {
+    "previewFeatures": true,
+    "sessionRetention": {
+      "enabled": true,
+      "maxAge": "30d",
+      "warningAcknowledged": true
+    },
+    "model": "gemini-3.1-pro-preview",
+    "flashModel": "gemini-3-flash-preview"
+  },
+  "experimental": {
+    "plan": true,
+    "enableAgents": true,
+    "checkpointing": {
+      "enabled": true
+    }
+  },
+  "context": {
+    "loadMemoryFromIncludeDirectories": true,
+    "fileName": [
+      "GEMINI.md",
+      "AGENTS.md"
+    ]
+  },
+  "mcpServers": {}
+}

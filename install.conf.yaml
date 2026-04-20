@@ -1,0 +1,99 @@
+# dotbot manifest — declarative symlinks for all 4 CLIs.
+# Source of truth: files in this repo. Targets: ~/.claude, ~/.cursor, ~/.gemini, ~/.codex
+#
+# IMPORTANT: force: false — dotbot never overwrites real files silently.
+# Backup of existing real files is done beforehand by scripts/backup-existing.sh.
+
+- defaults:
+    link:
+      relink: true
+      create: true
+      force: false
+      relative: false
+
+# Parent-Directories sicherstellen
+- create:
+    - ~/.claude
+    - ~/.claude/hooks
+    - ~/.claude/skills
+    - ~/.cursor
+    - ~/.cursor/rules
+    - ~/.cursor/skills
+    - ~/.gemini
+    - ~/.gemini/skills
+    - ~/.codex
+    - ~/.codex/skills
+
+# ---------------------------------------------------------------------------
+# Claude Code
+# ---------------------------------------------------------------------------
+- link:
+    ~/.claude/CLAUDE.md:
+      path: AGENTS.md
+    ~/.claude/settings.json:
+      path: configs/claude/settings.json
+    ~/.claude/hooks:
+      path: configs/claude/hooks
+    ~/.claude/skills/code-review-expert:
+      path: skills/code-review-expert
+    ~/.claude/skills/issue-pickup:
+      path: skills/issue-pickup
+    ~/.claude/skills/pr-open:
+      path: skills/pr-open
+    ~/.claude/skills/review-gate:
+      path: skills/review-gate
+
+# ---------------------------------------------------------------------------
+# Cursor CLI
+# cli-config.json is tricky — existing install will likely have one.
+# backup-existing.sh moves a real file out of the way before we symlink.
+# ---------------------------------------------------------------------------
+- link:
+    ~/.cursor/AGENTS.md:
+      path: AGENTS.md
+    ~/.cursor/rules/global.mdc:
+      path: configs/cursor/rules/global.mdc
+    ~/.cursor/cli-config.json:
+      path: configs/cursor/cli-config.json
+    ~/.cursor/skills/code-review-expert:
+      path: skills/code-review-expert
+    ~/.cursor/skills/issue-pickup:
+      path: skills/issue-pickup
+    ~/.cursor/skills/pr-open:
+      path: skills/pr-open
+    ~/.cursor/skills/review-gate:
+      path: skills/review-gate
+
+# ---------------------------------------------------------------------------
+# Gemini CLI
+# ---------------------------------------------------------------------------
+- link:
+    ~/.gemini/GEMINI.md:
+      path: AGENTS.md
+    ~/.gemini/settings.json:
+      path: configs/gemini/settings.json
+    ~/.gemini/skills/code-review-expert:
+      path: skills/code-review-expert
+    ~/.gemini/skills/issue-pickup:
+      path: skills/issue-pickup
+    ~/.gemini/skills/pr-open:
+      path: skills/pr-open
+    ~/.gemini/skills/review-gate:
+      path: skills/review-gate
+
+# ---------------------------------------------------------------------------
+# Codex CLI
+# ---------------------------------------------------------------------------
+- link:
+    ~/.codex/AGENTS.md:
+      path: AGENTS.md
+    ~/.codex/config.toml:
+      path: configs/codex/config.toml
+    ~/.codex/skills/code-review-expert:
+      path: skills/code-review-expert
+    ~/.codex/skills/issue-pickup:
+      path: skills/issue-pickup
+    ~/.codex/skills/pr-open:
+      path: skills/pr-open
+    ~/.codex/skills/review-gate:
+      path: skills/review-gate

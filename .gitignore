@@ -1,0 +1,37 @@
+# agent-stack .gitignore
+
+# Local env — never commit real secrets
+.env
+.env.local
+.env.*.local
+
+# Backups created by scripts/backup-existing.sh
+backup-*/
+
+# OS / Editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Node (nur falls hier je hochkommt)
+node_modules/
+npm-debug.log*
+
+# Test artifacts
+.coverage
+htmlcov/
+coverage.xml
+*.cover

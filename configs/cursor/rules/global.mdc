@@ -1,0 +1,8 @@
+---
+name: global-rules
+description: Global rules from AGENTS.md (single-source-of-truth)
+alwaysApply: true
+---
+
+See `~/.cursor/AGENTS.md` (symlinked to agent-stack/AGENTS.md).
+Read that first before any code change.

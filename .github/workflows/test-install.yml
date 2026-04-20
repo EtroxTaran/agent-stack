@@ -1,0 +1,111 @@
+name: test-install
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-install:
+    name: Syntax + dry-run (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install yq + jq (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+          YQ_VERSION="v4.44.3"
+          sudo curl -fsSL -o /usr/local/bin/yq \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+          jq --version
+
+      - name: Install yq + jq (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          brew install yq jq
+          yq --version
+          jq --version
+
+      - name: Shell syntax — install.sh
+        run: bash -n install.sh
+
+      - name: Shell syntax — scripts/*.sh
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          failed=0
+          for f in scripts/*.sh; do
+            echo "--- bash -n $f"
+            if ! bash -n "$f"; then
+              failed=1
+            fi
+          done
+          if [ $failed -ne 0 ]; then
+            echo "::error::One or more scripts/*.sh failed syntax check"
+            exit 1
+          fi
+
+      - name: Shell syntax — mcp/register.sh
+        run: |
+          if [ -f mcp/register.sh ]; then
+            bash -n mcp/register.sh
+          fi
+
+      - name: Shell syntax — configs/claude/hooks/*.sh
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for f in configs/claude/hooks/*.sh; do
+            echo "--- bash -n $f"
+            bash -n "$f"
+          done
+
+      - name: Shell syntax — ops/n8n/scripts/*.sh
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for f in ops/n8n/scripts/*.sh; do
+            echo "--- bash -n $f"
+            bash -n "$f"
+          done
+
+      - name: dotbot dry-run (structure only, no symlinks)
+        run: |
+          set -euo pipefail
+          # Wir führen dotbot NICHT real aus — das würde die Runner-Home zerschießen.
+          # Stattdessen: validiere dass das Submodule vorhanden ist und der Plugin-Entry
+          # Point existiert, plus dass install.conf.yaml parst.
+          if [ ! -d dotbot ]; then
+            echo "::warning::dotbot submodule missing — skipping dry-run"
+            exit 0
+          fi
+          if [ ! -x dotbot/bin/dotbot ]; then
+            chmod +x dotbot/bin/dotbot || true
+          fi
+          # dotbot hat kein echtes --dry-run flag; wir parsen nur die Config
+          python3 -c "
+          import sys, yaml, pathlib
+          data = yaml.safe_load(pathlib.Path('install.conf.yaml').read_text())
+          assert isinstance(data, list), 'install.conf.yaml must be a top-level list'
+          for item in data:
+              assert isinstance(item, dict), f'unexpected item: {item!r}'
+          print(f'OK: install.conf.yaml has {len(data)} top-level directives')
+          "

@@ -1,0 +1,113 @@
+name: validate-skills
+
+on:
+  pull_request:
+    paths:
+      - "skills/**"
+      - ".github/workflows/validate-skills.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate SKILL.md frontmatter
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML
+        run: pip install --no-cache-dir "pyyaml==6.0.2"
+
+      - name: Validate skills
+        run: |
+          python3 - <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+
+          import yaml
+
+          SKILLS_DIR = Path("skills")
+          errors: list[str] = []
+          checked = 0
+
+          if not SKILLS_DIR.is_dir():
+              print(f"::warning::skills/ directory missing, nothing to validate")
+              sys.exit(0)
+
+          for skill_md in sorted(SKILLS_DIR.glob("*/SKILL.md")):
+              checked += 1
+              skill_dir = skill_md.parent
+              dir_name = skill_dir.name
+
+              # _meta/ ist ein Dokumentations-Ordner, kein Skill
+              if dir_name.startswith("_"):
+                  continue
+
+              text = skill_md.read_text(encoding="utf-8")
+              if not text.startswith("---\n"):
+                  errors.append(f"{skill_md}: missing YAML frontmatter (must start with '---')")
+                  continue
+
+              # Frontmatter zwischen den ersten zwei '---' Zeilen
+              parts = text.split("\n---\n", 1)
+              if len(parts) < 2:
+                  # Fallback: suche zweites '---' am Zeilenanfang
+                  lines = text.splitlines()
+                  end_idx = None
+                  for i in range(1, len(lines)):
+                      if lines[i].strip() == "---":
+                          end_idx = i
+                          break
+                  if end_idx is None:
+                      errors.append(f"{skill_md}: frontmatter not closed with '---'")
+                      continue
+                  fm_text = "\n".join(lines[1:end_idx])
+              else:
+                  fm_text = parts[0].lstrip("-").lstrip("\n")
+
+              try:
+                  fm = yaml.safe_load(fm_text)
+              except yaml.YAMLError as exc:
+                  errors.append(f"{skill_md}: invalid YAML frontmatter: {exc}")
+                  continue
+
+              if not isinstance(fm, dict):
+                  errors.append(f"{skill_md}: frontmatter is not a mapping")
+                  continue
+
+              name = fm.get("name")
+              desc = fm.get("description")
+
+              if not name or not isinstance(name, str):
+                  errors.append(f"{skill_md}: missing or non-string 'name'")
+              elif name != dir_name:
+                  errors.append(
+                      f"{skill_md}: name '{name}' does not match directory '{dir_name}'"
+                  )
+
+              if not desc or not isinstance(desc, str):
+                  errors.append(f"{skill_md}: missing or non-string 'description'")
+              else:
+                  desc_len = len(desc.strip())
+                  if desc_len < 1 or desc_len > 1024:
+                      errors.append(
+                          f"{skill_md}: description length {desc_len} out of range 1-1024"
+                      )
+
+          if errors:
+              print("::error::Skill validation failed:")
+              for e in errors:
+                  print(f"  - {e}")
+              sys.exit(1)
+
+          print(f"OK: validated {checked} SKILL.md file(s)")
+          PY
