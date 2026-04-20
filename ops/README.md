@@ -11,6 +11,7 @@ der Messaging-Bus für die AI-Review-Pipeline.
 ops/
 ├── discord-bot/
 │   ├── provision_channels.py   Discord Channel Provisioning (Python, idempotent)
+│   ├── init-server.sh          Wrapper: provisioniert Default-Projekt-Liste in einem Aufruf
 │   ├── register-bot.md         Schritt-für-Schritt Discord Dev Portal Setup
 │   ├── setup.sh                One-Shot Orchestrations-Script (alles auf einmal)
 │   └── .env.example            Alle benötigten Env-Vars (ohne Werte)
