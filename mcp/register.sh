@@ -288,7 +288,9 @@ register_gemini() {
     (.mcpServers // {}) as $m
     | .mcpServers = ($m + { ($n): $e })
   ' "$cfg" > "$tmp"
-  mv "$tmp" "$cfg"
+  # Write-through statt mv, damit ein Symlink nicht durch eine reale Datei ersetzt wird
+  cat "$tmp" > "$cfg"
+  rm -f "$tmp"
   ok "registered $name in gemini"
 }
 
@@ -304,59 +306,115 @@ register_gemini() {
 register_codex() {
   local name="$1" json="$2"
   local cfg="${HOME}/.codex/config.toml"
-  local transport
-  transport="$(printf '%s' "$json" | jq -r '.transport')"
 
   mkdir -p "$(dirname "$cfg")"
   [[ -f "$cfg" ]] || : > "$cfg"
 
-  # JSON → YAML-Fragment bauen, dann mit yq TOML-merge
-  local entry_yaml
-  if [[ "$transport" == "stdio" ]]; then
-    entry_yaml="$(printf '%s' "$json" | yq -P '{
-      "command": .command,
-      "args":    (.args // []),
-      "env":     (.env  // {})
-    }')"
-  else
-    entry_yaml="$(printf '%s' "$json" | yq -P '{ "url": .url }')"
-  fi
-
   if (( DRY_RUN )); then
-    info "[dry-run] would set ${cfg} [mcp_servers.${name}] = <yaml>"
+    info "[dry-run] would set ${cfg} [mcp_servers.${name}]"
     ok "registered $name in codex (dry-run)"
     return 0
   fi
 
-  local tmp_existing tmp_new
-  tmp_existing="$(mktemp)"
-  tmp_new="$(mktemp)"
+  # Python-basierter TOML-Merge (yq kann keine nested tables schreiben).
+  # Python 3.11+ hat tomllib für Read. Writer ist manuell (klar umrissenes Schema).
+  # MCP_ENTRY_JSON wird als Env-Var durchgereicht.
+  MCP_ENTRY_JSON="$json" python3 - "$cfg" "$name" <<'PY_EOF'
+import sys, os, json, re
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib  # type: ignore
 
-  # Existierendes TOML → YAML (intern), mergen, zurück nach TOML
-  if [[ -s "$cfg" ]]; then
-    yq -p=toml -o=yaml '.' "$cfg" > "$tmp_existing" 2>/dev/null \
-      || printf '{}\n' > "$tmp_existing"
-  else
-    printf '{}\n' > "$tmp_existing"
-  fi
+cfg_path = sys.argv[1]
+name     = sys.argv[2]
+entry    = json.loads(os.environ["MCP_ENTRY_JSON"])
 
-  # Entry-YAML als Datei (für yq load-Pfad)
-  local tmp_entry
-  tmp_entry="$(mktemp)"
-  printf '%s\n' "$entry_yaml" > "$tmp_entry"
+# Read existing TOML
+try:
+    with open(cfg_path, "rb") as f:
+        data = tomllib.load(f)
+except (FileNotFoundError, tomllib.TOMLDecodeError):
+    data = {}
 
-  # Merge: setzt .mcp_servers.<name> auf Inhalt von $tmp_entry
-  yq eval-all "
-    select(fileIndex == 0) as \$base
-    | select(fileIndex == 1) as \$entry
-    | \$base
-    | .mcp_servers.\"${name}\" = \$entry
-  " "$tmp_existing" "$tmp_entry" > "$tmp_new"
+# Merge: set mcp_servers.<name> = cleaned entry
+mcp = data.setdefault("mcp_servers", {})
+if entry.get("transport") == "stdio":
+    server = {
+        "command": entry["command"],
+        "args":    entry.get("args", []),
+    }
+    if entry.get("env"):
+        server["env"] = entry["env"]
+else:
+    server = {"url": entry["url"]}
+    if entry.get("headers"):
+        server["http_headers"] = entry["headers"]
 
-  # Zurück nach TOML
-  yq -p=yaml -o=toml '.' "$tmp_new" > "$cfg"
+mcp[name] = server
 
-  rm -f "$tmp_existing" "$tmp_new" "$tmp_entry"
+# Manual TOML writer (simple, since our schema is well-defined)
+def toml_escape(s: str) -> str:
+    return '"' + s.replace('\\', '\\\\').replace('"', '\\"') + '"'
+
+def toml_value(v):
+    if isinstance(v, bool):   return "true" if v else "false"
+    if isinstance(v, int):    return str(v)
+    if isinstance(v, float):  return str(v)
+    if isinstance(v, str):    return toml_escape(v)
+    if isinstance(v, list):
+        return "[" + ", ".join(toml_value(x) for x in v) + "]"
+    if isinstance(v, dict):
+        return "{ " + ", ".join(f"{k} = {toml_value(val)}" for k, val in v.items()) + " }"
+    raise ValueError(f"unsupported TOML type: {type(v)}")
+
+lines = []
+
+# Preserve root-level scalars + [section] tables that are NOT mcp_servers
+def emit_table(d, path_prefix=""):
+    # Scalars first
+    for k, v in d.items():
+        if isinstance(v, dict):
+            continue
+        lines.append(f"{k} = {toml_value(v)}")
+    # Tables
+    for k, v in d.items():
+        if not isinstance(v, dict):
+            continue
+        new_path = f"{path_prefix}{k}"
+        lines.append("")
+        lines.append(f"[{new_path}]")
+        emit_table(v, new_path + ".")
+
+# Root-level (non-dict keys)
+for k, v in data.items():
+    if k == "mcp_servers":
+        continue
+    if isinstance(v, dict):
+        continue
+    lines.append(f"{k} = {toml_value(v)}")
+
+# Root-level dict-keys (except mcp_servers)
+for k, v in data.items():
+    if k == "mcp_servers":
+        continue
+    if not isinstance(v, dict):
+        continue
+    lines.append("")
+    lines.append(f"[{k}]")
+    emit_table(v, f"{k}.")
+
+# Finally mcp_servers sections at the end
+for server_name, server_cfg in mcp.items():
+    lines.append("")
+    lines.append(f"[mcp_servers.{server_name}]")
+    for k, v in server_cfg.items():
+        lines.append(f"{k} = {toml_value(v)}")
+
+with open(cfg_path, "w", encoding="utf-8") as f:
+    f.write("\n".join(lines) + "\n")
+PY_EOF
+
   ok "registered $name in codex"
 }
 
@@ -378,7 +436,7 @@ dispatch() {
 
     if [[ -z "$name" || -z "$transport" ]]; then
       err "server[${i}]: name oder transport fehlt — übersprungen"
-      (( i++ ))
+      i=$(( i + 1 ))
       continue
     fi
 
@@ -400,15 +458,23 @@ dispatch() {
         continue
       fi
 
+      # Ausführen und Counter pflegen. Kein "A && B || C" weil (( n++ )) bei n=0
+      # unter `set -e` das Script killt (exit-code 1). Stattdessen expliziter if/else.
+      local rc=0
       case "$cli" in
-        claude) register_claude "$name" "$json" && (( registered_total++ )) || (( failed_total++ )) ;;
-        cursor) register_cursor "$name" "$json" && (( registered_total++ )) || (( failed_total++ )) ;;
-        gemini) register_gemini "$name" "$json" && (( registered_total++ )) || (( failed_total++ )) ;;
-        codex)  register_codex  "$name" "$json" && (( registered_total++ )) || (( failed_total++ )) ;;
+        claude) register_claude "$name" "$json" || rc=$? ;;
+        cursor) register_cursor "$name" "$json" || rc=$? ;;
+        gemini) register_gemini "$name" "$json" || rc=$? ;;
+        codex)  register_codex  "$name" "$json" || rc=$? ;;
       esac
+      if (( rc == 0 )); then
+        registered_total=$(( registered_total + 1 ))
+      else
+        failed_total=$(( failed_total + 1 ))
+      fi
     done <<< "$clis_for_server"
 
-    (( i++ ))
+    i=$(( i + 1 ))
   done
 
   log ""

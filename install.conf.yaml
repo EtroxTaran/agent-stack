@@ -11,10 +11,11 @@
       force: false
       relative: false
 
-# Parent-Directories sicherstellen
+# Parent-Directories sicherstellen.
+# ACHTUNG: keine Pfade hier, die weiter unten per `link:` als Symlink gesetzt werden
+# (wie ~/.claude/hooks), sonst blockiert die vorab angelegte Leer-Directory den Symlink.
 - create:
     - ~/.claude
-    - ~/.claude/hooks
     - ~/.claude/skills
     - ~/.cursor
     - ~/.cursor/rules
@@ -53,8 +54,8 @@
       path: AGENTS.md
     ~/.cursor/rules/global.mdc:
       path: configs/cursor/rules/global.mdc
-    ~/.cursor/cli-config.json:
-      path: configs/cursor/cli-config.json
+    # ~/.cursor/cli-config.json NICHT symlinken: cursor-agent mcp add mutiert sie
+    # und ersetzt Symlinks durch reale Files. Copy-Template via shell-Step.
     ~/.cursor/skills/code-review-expert:
       path: skills/code-review-expert
     ~/.cursor/skills/issue-pickup:
@@ -70,8 +71,8 @@
 - link:
     ~/.gemini/GEMINI.md:
       path: AGENTS.md
-    ~/.gemini/settings.json:
-      path: configs/gemini/settings.json
+    # ~/.gemini/settings.json NICHT symlinken: register.sh mutiert sie live (jq-merge).
+    # Copy-Template via shell-Step unten.
     ~/.gemini/skills/code-review-expert:
       path: skills/code-review-expert
     ~/.gemini/skills/issue-pickup:
@@ -87,8 +88,8 @@
 - link:
     ~/.codex/AGENTS.md:
       path: AGENTS.md
-    ~/.codex/config.toml:
-      path: configs/codex/config.toml
+    # ~/.codex/config.toml NICHT symlinken: register.sh mutiert sie live (toml-merge).
+    # Copy-Template via shell-Step unten.
     ~/.codex/skills/code-review-expert:
       path: skills/code-review-expert
     ~/.codex/skills/issue-pickup:
@@ -97,3 +98,16 @@
       path: skills/pr-open
     ~/.codex/skills/review-gate:
       path: skills/review-gate
+
+# ---------------------------------------------------------------------------
+# Copy-Templates für live-mutable Configs (NICHT symlinked).
+# register.sh mutiert diese, daher müssen sie lokale Kopien sein.
+# -n = nicht überschreiben falls lokal bereits vorhanden
+# ---------------------------------------------------------------------------
+- shell:
+  - command: "cp -n configs/gemini/settings.json ~/.gemini/settings.json 2>/dev/null; true"
+    description: "Copy gemini settings template (only if not present)"
+  - command: "cp -n configs/codex/config.toml ~/.codex/config.toml 2>/dev/null; true"
+    description: "Copy codex config template (only if not present)"
+  - command: "cp -n configs/cursor/cli-config.json ~/.cursor/cli-config.json 2>/dev/null; true"
+    description: "Copy cursor cli-config template (only if not present)"

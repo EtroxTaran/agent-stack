@@ -44,6 +44,8 @@ _warn() {
 printf '%sSymlink targets → agent-stack repo%s\n' "${C_DIM}" "${C_RESET}"
 
 # format: "link_path:expected_target_relative_to_repo"
+# NOTE: Nur statische Dateien sind symlinked. Live-mutable Configs (cursor/cli-config,
+# gemini/settings.json, codex/config.toml) sind lokale Kopien — separat geprüft.
 SYMLINK_CHECKS=(
     "${HOME}/.claude/CLAUDE.md:AGENTS.md"
     "${HOME}/.claude/settings.json:configs/claude/settings.json"
@@ -54,23 +56,28 @@ SYMLINK_CHECKS=(
     "${HOME}/.claude/skills/review-gate:skills/review-gate"
     "${HOME}/.cursor/AGENTS.md:AGENTS.md"
     "${HOME}/.cursor/rules/global.mdc:configs/cursor/rules/global.mdc"
-    "${HOME}/.cursor/cli-config.json:configs/cursor/cli-config.json"
     "${HOME}/.cursor/skills/code-review-expert:skills/code-review-expert"
     "${HOME}/.cursor/skills/issue-pickup:skills/issue-pickup"
     "${HOME}/.cursor/skills/pr-open:skills/pr-open"
     "${HOME}/.cursor/skills/review-gate:skills/review-gate"
     "${HOME}/.gemini/GEMINI.md:AGENTS.md"
-    "${HOME}/.gemini/settings.json:configs/gemini/settings.json"
     "${HOME}/.gemini/skills/code-review-expert:skills/code-review-expert"
     "${HOME}/.gemini/skills/issue-pickup:skills/issue-pickup"
     "${HOME}/.gemini/skills/pr-open:skills/pr-open"
     "${HOME}/.gemini/skills/review-gate:skills/review-gate"
     "${HOME}/.codex/AGENTS.md:AGENTS.md"
-    "${HOME}/.codex/config.toml:configs/codex/config.toml"
     "${HOME}/.codex/skills/code-review-expert:skills/code-review-expert"
     "${HOME}/.codex/skills/issue-pickup:skills/issue-pickup"
     "${HOME}/.codex/skills/pr-open:skills/pr-open"
     "${HOME}/.codex/skills/review-gate:skills/review-gate"
+)
+
+# Live-mutable Configs: existieren als reale Datei (KEIN Symlink), werden von
+# register.sh in-place mutiert. Nur Existenz-Check.
+LOCAL_COPY_CHECKS=(
+    "${HOME}/.cursor/cli-config.json"
+    "${HOME}/.gemini/settings.json"
+    "${HOME}/.codex/config.toml"
 )
 
 for entry in "${SYMLINK_CHECKS[@]}"; do
@@ -94,6 +101,17 @@ for entry in "${SYMLINK_CHECKS[@]}"; do
         _pass "${link_path}"
     else
         _fail "wrong target: ${link_path} → ${actual_target} (expected ${expected_abs})"
+    fi
+done
+
+printf '\n%sLocal mutable configs (non-symlinked)%s\n' "${C_DIM}" "${C_RESET}"
+for f in "${LOCAL_COPY_CHECKS[@]}"; do
+    if [[ -f "$f" && ! -L "$f" ]]; then
+        _pass "${f}"
+    elif [[ -L "$f" ]]; then
+        _fail "unexpected symlink (must be local file): ${f}"
+    else
+        _fail "missing: ${f}"
     fi
 done
 
