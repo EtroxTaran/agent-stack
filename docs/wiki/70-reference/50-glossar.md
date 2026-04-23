@@ -199,6 +199,12 @@ Statische Code-Analyse, hier `semgrep` in Stage 2.
 **Security-Waiver**
 Override für Security-Stage-Findings. Kommando: `/ai-review security-waiver <reason ≥30 chars>`.
 
+**SessionStart-Hook**
+Ein Claude-Code-Hook-Event, das bei jedem Session-Start automatisch ausgeführt wird, bevor der Agent den ersten User-Input bekommt. Genutzt für den Projekt-Setup-Check (`project-setup-check.sh`). Siehe [`40-setup/50-project-setup-hook.md`](../40-setup/50-project-setup-hook.md).
+
+**Setup-Hook**
+Kurzform für den `project-setup-check.sh`-SessionStart-Hook, der unkonfigurierte `EtroxTaran/*`-Repos erkennt und einen Setup-Nudge zeigt.
+
 **semgrep**
 SAST-Tool mit Rule-basiertem Code-Scanning. Teil der Stage 2.
 

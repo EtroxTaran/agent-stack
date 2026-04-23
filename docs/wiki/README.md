@@ -42,6 +42,7 @@ mindmap
       Config
       Templates
       CLI
+      Setup-Hook
     Runbooks
       Webhook-Down
       DB-Korruption
@@ -129,6 +130,7 @@ mindmap
 | [.ai-review/config.yaml](40-setup/20-ai-review-config-schema.md) | Config-Schema-Referenz |
 | [Workflow-Templates](40-setup/30-workflow-templates.md) | Die 10 YAML-Templates erklärt |
 | [`gh ai-review` Extension](40-setup/40-gh-extension.md) | GitHub-CLI-Extension installieren |
+| [Projekt-Setup-Hook](40-setup/50-project-setup-hook.md) | SessionStart-Nudge erkennt unkonfigurierte Projekte automatisch |
 
 ### [50 — Runbooks](50-runbooks/) · *Wenn-es-brennt*
 

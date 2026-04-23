@@ -2,7 +2,14 @@
 
 > **TL;DR:** Diese Seite listet die größeren Entwicklungsschritte der AI-Review-Toolchain in umgekehrter chronologischer Reihenfolge. Für Detail-Analyse einzelner Entscheidungen siehe [ADRs-Index](20-adrs-index.md); für die sich-daraus-ergebenden Lehren siehe [Lessons Learned](10-lessons-learned.md). Dieser Changelog fokussiert auf: Was wurde gebaut, wann, warum grob.
 
-## 2026-04-23 — Wiki-Einführung
+## 2026-04-23 — Projekt-Setup-Hook (PR#9)
+
+**Was:** SessionStart-Hook `project-setup-check.sh`, der bei jedem Claude-Code-Session-Start erkennt, ob das aktuelle Repo die AI-Review-Pipeline aktiviert hat.
+**Warum:** Die Pipeline war bisher opt-in pro Projekt — man musste wissen, dass sie existiert, und sie manuell aktivieren. Bei neuen Projekten wurde das regelmäßig vergessen.
+**Wie:** Der Hook printet bei unkonfigurierten `EtroxTaran/*`-Repos eine handlungsbare Setup-Anleitung in den Session-Output. Nicht-blockierend (exit 0), skippbar via `CLAUDE_SKIP_AI_REVIEW_SETUP=1` oder `.ai-review/.noreview`-File. AGENTS.md §8.3 definiert das zugehörige Agent-Verhalten.
+**Referenz:** [`40-setup/50-project-setup-hook.md`](../40-setup/50-project-setup-hook.md).
+
+## 2026-04-23 — Wiki-Einführung (PR#8)
 
 **Was:** Dieses Wiki (`agent-stack/docs/wiki/`) wurde angelegt.
 **Warum:** Infos waren über 3 Repos + 3 Plan-Dateien zerstreut; Junior-Devs hatten keinen Einstiegspunkt; Stakeholder (Nico, Sabine) brauchten verständliche TL;DR.
