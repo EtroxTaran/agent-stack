@@ -215,6 +215,48 @@ Details: `github.com/EtroxTaran/ai-review-pipeline`.
 `codex: gpt-5.x` · `cursor: composer-2` · `gemini: gemini-2.5-pro` · `claude: claude-opus-4-7`.
 Pro Projekt überschreibbar via `.ai-review/config.yaml`.
 
+### Project-Setup-Step (automatisch bei Session-Start)
+
+Jedes Projekt unter `github.com/EtroxTaran/*` MUSS die Review-Pipeline aktiviert haben.
+Der SessionStart-Hook `~/.claude/hooks/project-setup-check.sh` prüft das bei jedem
+Claude-Code-Start automatisch und printet — falls nicht konfiguriert — eine
+handlungsbare Anleitung:
+
+```
+┌────────────────────────────────────────────────┐
+│ ⚠️  AI-Review-Pipeline nicht aktiviert         │
+│                                                │
+│ Setup (~5 Min):                                │
+│   gh ai-review install                         │
+│   $EDITOR .ai-review/config.yaml               │
+│   gh ai-review verify                          │
+└────────────────────────────────────────────────┘
+```
+
+**Der Agent (Claude / Cursor / Gemini / Codex) liest diesen Output im Session-Start
+und MUSS beim ersten nicht-trivialen User-Request:**
+
+1. Den Nudge erwähnen (einmal pro Session, nicht wiederholen)
+2. Anbieten, das Setup auszuführen (falls User-Intent = "neues Projekt aufsetzen")
+3. Bei Ablehnung: respektieren, nicht drängen
+
+**Bypass-Mechanismen** (wenn ein Repo bewusst ohne Pipeline läuft):
+- `touch .ai-review/.noreview && git add … && git commit` im Repo
+- `CLAUDE_SKIP_AI_REVIEW_SETUP=1` als Environment-Variable
+- Fremd-Repos (nicht `EtroxTaran/*`): Hook feuert nicht
+
+**Setup-Ablauf** (Details: `agent-stack/docs/wiki/40-setup/00-quickstart-neues-projekt.md`):
+1. `gh ai-review install` — kopiert 10 Workflow-Templates + `.ai-review/config.yaml`
+2. `$EDITOR .ai-review/config.yaml` — Discord-Channel-ID eintragen
+3. `gh ai-review verify` — Sanity-Check (Templates da, Config-Schema valid, Secrets gesetzt)
+4. `bash ~/projects/agent-stack/ops/discord-bot/init-server.sh --add-project <name>` — Channels anlegen
+5. PR öffnen → Branch-Protection konfigurieren (`ai-review/consensus` als Required-Check)
+
+**Warum als Hook und nicht als "bitte dran denken"**: Der Hook ist deterministisch,
+der Mensch vergisst. Informationelle CLAUDE.md-Notizen werden vom Agent ignoriert
+wenn der Session-Kontext voll ist — ein Bash-Output beim Session-Start ist
+garantiert sichtbar.
+
 ---
 
 ## 9. Ticket ↔ PR Linkage (strikt)
