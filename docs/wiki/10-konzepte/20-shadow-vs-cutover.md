@@ -75,10 +75,10 @@ Wenn nach Schritt 4 herauskommt, dass v2 nicht zuverlässig ist: Branch-Protecti
 
 ### Aktueller Status (Stand dieses Dokuments)
 
-- **Phase 4 läuft stabil** seit dem Merge von PR#40 (ai-portal Shadow-Mode Hook)
-- Shadow-Run #24853468198 zeigte 6/6 Jobs success + Consensus success — ein erster vollständig sauberer Durchlauf
-- Divergenz-Analyse noch ausstehend (braucht mehr Real-PRs zum Vergleich)
-- Phase 5 Cutover: frühestens nach 10+ Real-PRs durch v2 mit dokumentiertem Divergenz-Bericht
+- **Phase 5 Cutover durchgeführt** am 2026-04-24 (ai-portal PR#44)
+- v2 ist **die einzige Pipeline** im ai-portal; v1 Legacy-Workflows gelöscht
+- Shadow-Phase 4 war von 2026-04-20 (Hook-Merge) bis 2026-04-24 aktiv
+- Shadow-Run #24853468198 lieferte den grünen E2E-Nachweis vor dem Cutover
 
 ## Verwandte Seiten
 
@@ -89,6 +89,6 @@ Wenn nach Schritt 4 herauskommt, dass v2 nicht zuverlässig ist: Branch-Protecti
 
 ## Quelle der Wahrheit (SoT)
 
-- [`ai-portal/.github/workflows/ai-review-v2-shadow.yml`](https://github.com/EtroxTaran/ai-portal/blob/main/.github/workflows/ai-review-v2-shadow.yml) — der v2 Shadow-Workflow
-- [`ai-portal/.ai-review/config.yaml`](https://github.com/EtroxTaran/ai-portal/blob/main/.ai-review/config.yaml) — Phase-4-Config
+- [`ai-portal/.github/workflows/ai-review.yml`](https://github.com/EtroxTaran/ai-portal/blob/main/.github/workflows/ai-review.yml) — der Production-Workflow (seit Cutover 2026-04-24)
+- [`ai-portal/.ai-review/config.yaml`](https://github.com/EtroxTaran/ai-portal/blob/main/.ai-review/config.yaml) — Production-Config
 - [ADR-018 CI/CD Deploy Pipeline](https://github.com/EtroxTaran/ai-portal/blob/main/docs/v2/10-adr/ADR-018-cicd-deploy-pipeline.md) — Architektur-Entscheidung

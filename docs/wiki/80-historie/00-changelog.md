@@ -2,6 +2,21 @@
 
 > **TL;DR:** Diese Seite listet die größeren Entwicklungsschritte der AI-Review-Toolchain in umgekehrter chronologischer Reihenfolge. Für Detail-Analyse einzelner Entscheidungen siehe [ADRs-Index](20-adrs-index.md); für die sich-daraus-ergebenden Lehren siehe [Lessons Learned](10-lessons-learned.md). Dieser Changelog fokussiert auf: Was wurde gebaut, wann, warum grob.
 
+## 2026-04-24 — Phase-5-Cutover im ai-portal (PR#44)
+
+**Was:** v2 ai-review-pipeline wird die **einzige** Review-Pipeline im ai-portal. Shadow-Modus beendet, 5 v1-Legacy-Workflows gelöscht.
+**Warum:** Die Toolchain wurde für Produktions-Einsatz gebaut; paralleler Shadow-Betrieb sollte nur Validierung sein, nicht Dauerzustand. Nico hat explizit Cutover sofort angeordnet.
+**Die Schritte:**
+1. `.ai-review/config.yaml`: alle 5 Stages `blocking: true`, Channel-ID auf `${DISCORD_CHANNEL_AI_PORTAL}`, `mention_role: "@here"`
+2. `ai-review-v2-shadow.yml` → `ai-review.yml` (Rename via `git mv`)
+3. `--status-context-prefix ai-review-v2`, `--discord-channel`, `--no-ping` Shadow-Flags entfernt
+4. Metrics-Pfad `.ai-review/metrics-v2.jsonl` → `.ai-review/metrics.jsonl`
+5. 5 Legacy-Workflows gelöscht: `ai-code-review.yml`, `ai-security-review.yml`, `ai-design-review.yml`, `ai-review-scope-check.yml`, `ai-review-consensus.yml`
+
+**Branch-Protection:** `ai-review/consensus` war bereits als required-check konfiguriert — kein Gap beim Cutover.
+
+**Referenz:** [ai-portal PR#44](https://github.com/EtroxTaran/ai-portal/pull/44).
+
 ## 2026-04-23 — Projekt-Setup-Hook (PR#9)
 
 **Was:** SessionStart-Hook `project-setup-check.sh`, der bei jedem Claude-Code-Session-Start erkennt, ob das aktuelle Repo die AI-Review-Pipeline aktiviert hat.
