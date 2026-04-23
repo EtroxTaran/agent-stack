@@ -200,11 +200,16 @@ Nach erfolgreichem Smoke-Test:
 | `ac_validation` meldet "no linked issue" | PR-Body muss `Closes #N` enthalten, Issue muss `## Acceptance Criteria` + Gherkin haben |
 | Branch-Protection blockt `ai-review/consensus` nicht | `required_status_checks[contexts]` in Protection-Config nicht gesetzt |
 
+## Automatisierung: Der Setup-Hook
+
+Seit 2026-04-23 feuert bei jedem Claude-Code-Session-Start ein Hook, der unkonfigurierte `EtroxTaran/*`-Repos erkennt und die obigen 5 Schritte als Handlungsvorschlag anzeigt. Der Hook ist rein informativ (exit 0), nicht blockierend. Details: [Projekt-Setup-Hook](50-project-setup-hook.md).
+
 ## Verwandte Seiten
 
 - [.ai-review/config.yaml-Schema](20-ai-review-config-schema.md) — alle Config-Optionen
 - [Workflow-Templates](30-workflow-templates.md) — die 10 YAMLs erklärt
 - [`gh ai-review` Extension](40-gh-extension.md) — Installation + Update
+- [Projekt-Setup-Hook](50-project-setup-hook.md) — die Automatisierung, die diesen Quickstart nudged
 - [Discord-Bridge](../20-komponenten/40-discord-bridge.md) — warum zentraler Bot
 - [AGENTS.md §9 Ticket↔PR-Linkage](https://github.com/EtroxTaran/agent-stack/blob/main/AGENTS.md) — Gherkin-AC-Pflicht
 
