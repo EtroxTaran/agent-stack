@@ -1,0 +1,79 @@
+name: audit-cli-settings
+
+on:
+  pull_request:
+    paths:
+      - 'configs/**'
+      - 'scripts/audit-cli-settings.sh'
+      - '.github/workflows/audit-cli-settings.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline-drift:
+    name: BASELINE drift check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq + yq
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+          YQ_VERSION="v4.44.3"
+          sudo curl -fsSL -o /usr/local/bin/yq \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          sudo chmod +x /usr/local/bin/yq
+          jq --version
+          yq --version
+          # audit-cli-settings.sh nutzt python3 -c "import tomllib" — seit Python 3.11 stdlib.
+          python3 -c "import tomllib; print(f'tomllib ok (python {__import__(\"sys\").version_info.major}.{__import__(\"sys\").version_info.minor})')"
+
+      - name: BASELINE schema validity
+        run: |
+          set -euo pipefail
+          if ! jq empty configs/BASELINE.assertions.json; then
+            echo "::error file=configs/BASELINE.assertions.json::Invalid JSON"
+            exit 2
+          fi
+
+      - name: Run audit (JSON output for log legibility)
+        id: audit
+        run: |
+          set +e
+          bash scripts/audit-cli-settings.sh --json > audit.json
+          rc=$?
+          set -e
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          jq . audit.json
+          if [ "$rc" -ne 0 ]; then
+            drift=$(jq -r '.drift_count' audit.json)
+            errors=$(jq -r '.error_count' audit.json)
+            jq -r '.findings[] | "::error [\(.cli)] \(.severity) — \(.message)"' audit.json
+            echo "::error::BASELINE drift: ${drift} warn, ${errors} error — siehe Findings oben + configs/BASELINE.md"
+            exit "$rc"
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f audit.json ]; then
+            echo "### CLI-Config BASELINE audit" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            drift=$(jq -r '.drift_count' audit.json)
+            errors=$(jq -r '.error_count' audit.json)
+            if [ "$drift" -eq 0 ] && [ "$errors" -eq 0 ]; then
+              echo "OK: keine Drift gegen configs/BASELINE.assertions.json." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Drift: ${drift} warn, ${errors} error" >> "$GITHUB_STEP_SUMMARY"
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "| CLI | Severity | Message |" >> "$GITHUB_STEP_SUMMARY"
+              echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+              jq -r '.findings[] | "| \(.cli) | \(.severity) | \(.message) |"' audit.json >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi

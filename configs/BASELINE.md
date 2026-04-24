@@ -15,7 +15,13 @@ Die maschinenlesbaren Assertions stehen in `configs/BASELINE.assertions.json` di
 
 | Key | Soll-Wert | Warum |
 |---|---|---|
-| `model` | `opus` | AGENTS.md §1: Plan-Phase auf Opus 4.7 |
+| `model` | `opus` | Default-Tier (Plan/Reasoning). Konkrete Delegation-Patterns für Sonnet/Haiku: `docs/wiki/10-konzepte/30-model-tier-policy.md` |
+| `effortLevel` | `"high"` | Extended-Thinking-Budget auf Maximum. Opus-Default braucht tiefes Reasoning — bei Haiku/Sonnet-Delegation intern pro Session über `/model` oder Subagent-Frontmatter reduzierbar |
+| `theme` | `"dark-ansi"` | ANSI-Farben reichen auf r2d2-Terminal; Fancy-Themes brechen in SSH-Sessions |
+| `remoteControlAtStartup` | `false` | Claude-Code startet nicht automatisch als Remote-Control-Target. Opt-in bleibt pro Session via `/remote` für bewusste Web-Session-Handoffs |
+| `voiceEnabled` | `true` | Voice-Input aktiv für Hands-free-Diktate (Sabine-Use-Case). Kein Sicherheitsrisiko: Mikro bleibt OS-seitig gated |
+| `skipDangerousModePermissionPrompt` | `true` | Bypass-Confirm für bypass-permissions-Mode. **Security-Rationale**: 2-User-Family-Setup + statische Deny-Liste (`Bash(rm *)`, `Bash(sudo *)`, `Read(**/.env)`, `Read(~/.ssh/**)` etc. — siehe `permissions.deny[]`) + Hook `block-dangerous.sh` fangen die real-destruktiven Pfade. Der Prompt blockierte nur Flow-State, nicht echte Angriffe |
+| `skipAutoPermissionPrompt` | `true` | Bypass-Confirm für auto-Mode-Aktivierung. Gleiche Security-Rationale wie `skipDangerousModePermissionPrompt`: Deny-Liste + `block-dangerous.sh` sind die reale Schutzschicht, der Prompt ist Flow-Killer |
 | `env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | `"1"` | TeamCreate/SendMessage für Fleet-Delegation aktiv |
 | `env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` | `"80"` | AGENTS.md §13: >70% Context = neue Session; 80% als harter Compact-Trigger |
 | `env.CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `"32000"` | Default ist niedriger; 32k erlaubt längere Reports ohne Truncation |
@@ -108,3 +114,4 @@ Die maschinenlesbaren Assertions stehen in `configs/BASELINE.assertions.json` di
 | Datum | Change | Grund |
 |---|---|---|
 | 2026-04-24 | Initial-Version | Auto-Update/Audit-System aufgesetzt |
+| 2026-04-24 | Claude-Keys erweitert (`theme`, `effortLevel`, `remoteControlAtStartup`, `voiceEnabled`, `skipDangerousModePermissionPrompt`) + Model-Tier-Policy-Doku-Referenz | Harness-Keys aus neueren Claude-Code-Releases dokumentiert; Opus/Sonnet/Haiku-Delegation explizit gemacht |

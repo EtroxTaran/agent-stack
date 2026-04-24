@@ -49,8 +49,10 @@ _jq_key_exists() {
 }
 
 _jq_get_value() {
+    # Achtung: `// empty` behandelt Boolean-false wie null (jq-Falsy).
+    # Daher expliziter Null-Check statt `//`.
     local file="$1" key="$2"
-    jq -r "$key // empty" "$file" 2>/dev/null
+    jq -r "if ($key) == null then \"\" else ($key) end" "$file" 2>/dev/null
 }
 
 _check_json_config() {
@@ -162,7 +164,9 @@ _check_model_registry() {
     # Tilde expandieren
     registry_path="${registry_path/#\~/$HOME}"
     if [[ ! -f "$registry_path" ]]; then
-        _finding "registry" "warn" "MODEL_REGISTRY.md fehlt unter ${registry_path}"
+        # Registry ist ein Cross-Repo-File unter ~/.openclaw/workspace/, existiert
+        # auf CI-Runnern nicht. Silently skip statt warn — der echte SoT
+        # (ai-review-pipeline/registry/MODEL_REGISTRY.env) hat eigene Drift-Checks.
         return
     fi
 
