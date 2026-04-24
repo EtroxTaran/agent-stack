@@ -1,0 +1,88 @@
+{
+  "skill": "project-setup-check",
+  "version": "0.1.0",
+  "description": "Validate that the setup-check skill fires in the right conditions and stays silent in the wrong ones.",
+  "cases": [
+    {
+      "id": "trigger-1-new-etrox-repo",
+      "type": "trigger",
+      "prompt": "I'm starting a new session in ~/projects/my-new-repo. Remote is git@github.com:EtroxTaran/my-new-repo.git, no .ai-review/ directory yet. What's the first thing I should do?",
+      "expected_behavior": "The skill invokes itself proactively and renders the setup-nudge at the top of the response.",
+      "expected_output_contains": [
+        "AI-Review-Pipeline ist für dieses Repo noch nicht konfiguriert",
+        "gh extension install EtroxTaran/gh-ai-review",
+        "gh ai-review install"
+      ]
+    },
+    {
+      "id": "trigger-2-explicit-setup-question",
+      "type": "trigger",
+      "prompt": "Wie aktiviere ich die AI-Review-Pipeline in einem neuen Projekt? Ich bin gerade in EtroxTaran/foo.",
+      "expected_behavior": "Skill fires, renders nudge, and offers to run the setup.",
+      "expected_output_contains": [
+        "AI-Review-Pipeline",
+        "gh ai-review"
+      ]
+    },
+    {
+      "id": "trigger-3-opening-repo",
+      "type": "trigger",
+      "prompt": "just opened EtroxTaran/new-project for the first time. help me get started",
+      "expected_behavior": "Skill fires because the repo is EtroxTaran/* and has no .ai-review/config.yaml.",
+      "expected_output_contains": [
+        "noch nicht konfiguriert"
+      ]
+    },
+    {
+      "id": "trigger-4-bootstrap-phrase",
+      "type": "trigger",
+      "prompt": "Bootstrap this repo — it's EtroxTaran/fresh.",
+      "expected_behavior": "Skill fires on the 'bootstrap' trigger phrase for an EtroxTaran/* repo.",
+      "expected_output_contains": [
+        "AI-Review-Pipeline"
+      ]
+    },
+    {
+      "id": "trigger-5-getting-started",
+      "type": "trigger",
+      "prompt": "Getting started in EtroxTaran/untouched — what's missing?",
+      "expected_behavior": "Skill fires and points out that .ai-review/config.yaml is missing.",
+      "expected_output_contains": [
+        "noch nicht konfiguriert"
+      ]
+    },
+    {
+      "id": "no-trigger-1-configured-repo",
+      "type": "no-trigger",
+      "prompt": "I'm in EtroxTaran/ai-portal which already has .ai-review/config.yaml and .github/workflows/ai-review.yml. Explain the test structure.",
+      "expected_behavior": "The skill stays silent because the repo is already configured. The response answers the actual question about test structure.",
+      "expected_output_contains_NOT": [
+        "noch nicht konfiguriert",
+        "gh ai-review install"
+      ]
+    },
+    {
+      "id": "no-trigger-2-foreign-repo",
+      "type": "no-trigger",
+      "prompt": "I just cloned facebook/react. Help me understand the source layout.",
+      "expected_behavior": "Skill stays silent because facebook/react is not an EtroxTaran/* repo.",
+      "expected_output_contains_NOT": [
+        "AI-Review-Pipeline"
+      ]
+    },
+    {
+      "id": "no-trigger-3-opted-out",
+      "type": "no-trigger",
+      "prompt": "Repo EtroxTaran/experiment has a .ai-review/.noreview file. What does that mean?",
+      "expected_behavior": "Skill stays silent (repo has explicitly opted out). The response explains the .noreview file instead.",
+      "expected_output_contains_NOT": [
+        "noch nicht konfiguriert"
+      ]
+    }
+  ],
+  "success_criteria": {
+    "min_trigger_pass_rate": 0.8,
+    "min_no_trigger_pass_rate": 0.9,
+    "overall_min": 0.8
+  }
+}
