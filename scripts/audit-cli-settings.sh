@@ -49,8 +49,10 @@ _jq_key_exists() {
 }
 
 _jq_get_value() {
+    # Achtung: `// empty` behandelt Boolean-false wie null (jq-Falsy).
+    # Daher expliziter Null-Check statt `//`.
     local file="$1" key="$2"
-    jq -r "$key // empty" "$file" 2>/dev/null
+    jq -r "if ($key) == null then \"\" else ($key) end" "$file" 2>/dev/null
 }
 
 _check_json_config() {

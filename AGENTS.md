@@ -11,7 +11,7 @@
 - **User**: Nico & Sabine Rimmele (Familie, 2-User-Use-Case).
 - **Maintainer-Agent**: Nathan — Identity-Kern in `~/.openclaw/workspace/SOUL.md`
   ("direkt, proaktiv, kein Ja-Sager"). Hier bewusst NICHT dupliziert.
-- **Primary-Dev-CLI**: Claude Code (Plan: Opus 4.7 · Implement: Sonnet 4.6 · Subagents/Commits: Haiku 4.5).
+- **Primary-Dev-CLI**: Claude Code (Plan: Opus 4.7 · Implement: Sonnet 4.6 · Subagents/Commits: Haiku 4.5). Konkrete Delegation-Patterns: [`docs/wiki/10-konzepte/30-model-tier-policy.md`](docs/wiki/10-konzepte/30-model-tier-policy.md).
 - **Reviewer-CLIs**: Codex, Cursor, Gemini, Claude — konkrete Modell-Pins in §8 (aus Registry).
 - **OpenClaw-Koexistenz**: `~/.openclaw/workspace/AGENTS.md` hält Nathan-Identität + Sub-Workspaces
   (11 Agents, Fleet-Architektur, Ownership-Map). Diese Datei hier = Engineering-Infrastructure.

@@ -18,13 +18,23 @@
       ".hooks.SessionStart",
       ".hooks.PreToolUse",
       ".hooks.PostToolUse",
-      ".hooks.Stop"
+      ".hooks.Stop",
+      ".theme",
+      ".effortLevel",
+      ".remoteControlAtStartup",
+      ".voiceEnabled",
+      ".skipDangerousModePermissionPrompt"
     ],
     "expected_values": {
       ".model": "opus",
       ".permissions.defaultMode": "acceptEdits",
       ".env.ENABLE_TOOL_SEARCH": "1",
-      ".env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80"
+      ".env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80",
+      ".theme": "dark-ansi",
+      ".effortLevel": "high",
+      ".remoteControlAtStartup": "false",
+      ".voiceEnabled": "true",
+      ".skipDangerousModePermissionPrompt": "true"
     },
     "required_deny_patterns": [
       "Bash(rm *)",
