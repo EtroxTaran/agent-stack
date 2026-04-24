@@ -60,13 +60,19 @@ Die **Bewegungsrichtung** der Daten im Normalfall:
 
 ### Die fünf Review-Stufen
 
+<!-- wiki-review-stages-start -->
+<!-- AUTO-GENERIERT aus ai-review-pipeline/registry/MODEL_REGISTRY.env -->
+<!-- NICHT manuell editieren — Änderungen kommen aus dem Weekly-Drift-Check -->
+<!-- Regeneriert: 2026-04-24 -->
+
 | Stufe | KI-Modell | Blickwinkel | Tool-Integration |
 |---|---|---|---|
-| **Code-Review** | Codex (GPT-5) | Funktionale Korrektheit, TypeScript strict, TDD-Compliance | `ai-review stage code-review` |
+| **Code-Review** | Codex (`gpt-5.5`) | Funktionale Korrektheit, TypeScript strict, TDD-Compliance | `ai-review stage code-review` |
 | **Code-Cursor** | Cursor (composer-2) | Zweite Meinung mit anderem Modell | `ai-review stage cursor-review` |
-| **Security** | Gemini 2.5 Pro + `semgrep` | OWASP, Secret-Leaks, Injection-Risiken | `ai-review stage security` |
-| **Design** | Claude Opus 4.7 | UI/UX, Accessibility, Design-System-Konformität | `ai-review stage design` |
+| **Security** | Gemini (`gemini-3.1-pro-preview`) + `semgrep` | OWASP, Secret-Leaks, Injection-Risiken | `ai-review stage security` |
+| **Design** | Claude (`claude-opus-4-7`) | UI/UX, Accessibility, Design-System-Konformität | `ai-review stage design` |
 | **AC-Validation** | Codex primary + Claude second-opinion | 1:1-Mapping Acceptance-Criteria ↔ Test | `ai-review ac-validate` |
+<!-- wiki-review-stages-end -->
 
 Details: [`10-konzepte/00-ai-review-pipeline.md`](10-konzepte/00-ai-review-pipeline.md).
 
