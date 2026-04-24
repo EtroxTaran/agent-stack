@@ -21,6 +21,7 @@ Die maschinenlesbaren Assertions stehen in `configs/BASELINE.assertions.json` di
 | `remoteControlAtStartup` | `false` | Claude-Code startet nicht automatisch als Remote-Control-Target. Opt-in bleibt pro Session via `/remote` für bewusste Web-Session-Handoffs |
 | `voiceEnabled` | `true` | Voice-Input aktiv für Hands-free-Diktate (Sabine-Use-Case). Kein Sicherheitsrisiko: Mikro bleibt OS-seitig gated |
 | `skipDangerousModePermissionPrompt` | `true` | Bypass-Confirm für bypass-permissions-Mode. **Security-Rationale**: 2-User-Family-Setup + statische Deny-Liste (`Bash(rm *)`, `Bash(sudo *)`, `Read(**/.env)`, `Read(~/.ssh/**)` etc. — siehe `permissions.deny[]`) + Hook `block-dangerous.sh` fangen die real-destruktiven Pfade. Der Prompt blockierte nur Flow-State, nicht echte Angriffe |
+| `skipAutoPermissionPrompt` | `true` | Bypass-Confirm für auto-Mode-Aktivierung. Gleiche Security-Rationale wie `skipDangerousModePermissionPrompt`: Deny-Liste + `block-dangerous.sh` sind die reale Schutzschicht, der Prompt ist Flow-Killer |
 | `env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | `"1"` | TeamCreate/SendMessage für Fleet-Delegation aktiv |
 | `env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` | `"80"` | AGENTS.md §13: >70% Context = neue Session; 80% als harter Compact-Trigger |
 | `env.CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `"32000"` | Default ist niedriger; 32k erlaubt längere Reports ohne Truncation |

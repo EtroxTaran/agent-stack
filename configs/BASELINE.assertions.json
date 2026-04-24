@@ -23,7 +23,8 @@
       ".effortLevel",
       ".remoteControlAtStartup",
       ".voiceEnabled",
-      ".skipDangerousModePermissionPrompt"
+      ".skipDangerousModePermissionPrompt",
+      ".skipAutoPermissionPrompt"
     ],
     "expected_values": {
       ".model": "opus",
@@ -34,7 +35,8 @@
       ".effortLevel": "high",
       ".remoteControlAtStartup": "false",
       ".voiceEnabled": "true",
-      ".skipDangerousModePermissionPrompt": "true"
+      ".skipDangerousModePermissionPrompt": "true",
+      ".skipAutoPermissionPrompt": "true"
     },
     "required_deny_patterns": [
       "Bash(rm *)",
