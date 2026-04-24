@@ -230,8 +230,8 @@ Details: `github.com/EtroxTaran/ai-review-pipeline`.
 ### LLM-Modell-Versionen (aus Registry)
 
 - **Claude**: Opus `claude-opus-4-7` · Sonnet `claude-sonnet-4-6` · Haiku `claude-haiku-4-5`
-- **OpenAI (Codex-CLI Main)**: `(nicht gepinnt)`
-- **Gemini**: Pro `gemini-3.1-pro-preview` · Flash `gemini-3-flash-preview`
+- **OpenAI (Codex-CLI Main)**: `gpt-5.5`
+- **Gemini**: Pro `gemini-3.1-pro-preview` · Flash `gemini-3.1-flash-live-preview`
 - **CLI-Pins**: Codex `latest` · Cursor-Agent `latest`
 
 Registry wird wöchentlich automatisch geprüft (Montag 08:00 UTC) via
