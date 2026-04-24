@@ -31,7 +31,7 @@ import re
 import sys
 import urllib.error
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -256,7 +256,7 @@ def update_registry(path: Path, updates: dict[str, str]) -> str:
     new_keys = set(updates.keys()) - seen_keys
     if new_keys:
         after_lines.append("")
-        after_lines.append(f"# Added by drift-check {datetime.utcnow().date().isoformat()}")
+        after_lines.append(f"# Added by drift-check {datetime.now(timezone.utc).date().isoformat()}")
         for key in sorted(new_keys):
             after_lines.append(f"{key}={updates[key]}")
 
