@@ -394,7 +394,10 @@ Enforcement: Verletzung → Lessons-Learned-Eintrag + sofortige Korrektur + Memo
 ## 14. Skills — Cross-Tool Standard
 
 - **Format**: Agent Skills Open Standard (`SKILL.md` YAML-Frontmatter + Markdown).
-  Eine Quelle in `agent-stack/skills/`, via dotbot symlinked in `~/.{claude,cursor,gemini,codex}/skills/`.
+  Eine Quelle in `agent-stack/skills/`, via dotbot symlinked in:
+  - `~/.agents/skills/<name>` — **Primär-SoT**, nativ gelesen von **Codex** (offizielle Docs: [developers.openai.com/codex/skills](https://developers.openai.com/codex/skills)) und **Gemini** ([geminicli.com/docs/cli/skills](https://geminicli.com/docs/cli/skills/)).
+  - `~/.claude/skills/<name>` — redundanter Symlink für Claude (erwartet seinen eigenen Pfad).
+  - **Cursor** hat aktuell keinen nativen Skills-Support (Forum-Antwort Cursor-Mod, 2026-04). Plan: MCP-Bridge (Follow-up).
 - **Tool-neutral**: Keine CLI-spezifischen Bash-Calls in Skills (`claude …`, `cursor-agent …`).
   Nur generische MCP-Tools + Standard-Bash.
 - **Authoring-Workflow** (Anthropic Skill-Creator):
@@ -443,7 +446,7 @@ Details: `~/.openclaw/workspace/AGENTS.md` §6 + `docs/extended-rules.md`.
 ## 17. Wichtige Pfade
 
 - **Workspace (OpenClaw)**: `~/.openclaw/workspace/`
-- **Skills (Cross-Tool-SoT)**: `~/projects/agent-stack/skills/` → symlinked in `~/.{claude,cursor,gemini,codex}/skills/`
+- **Skills (Cross-Tool-SoT)**: `~/projects/agent-stack/skills/` → symlinked in `~/.agents/skills/` (primär) + `~/.claude/skills/` (redundant für Claude-Pfad-Erwartung)
 - **Scripts (OpenClaw)**: `~/.openclaw/workspace/scripts/`
 - **Env (Secrets-SoT)**: `~/.openclaw/.env` — **NIE** im Repo committen
 - **Projects**: `~/projects/`
