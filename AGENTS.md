@@ -288,6 +288,19 @@ der Mensch vergisst. Informationelle CLAUDE.md-Notizen werden vom Agent ignorier
 wenn der Session-Kontext voll ist — ein Bash-Output beim Session-Start ist
 garantiert sichtbar.
 
+**Cursor / Gemini / Codex haben keinen SessionStart-Hook-Mechanismus** (verifiziert
+2026-04-24). Deshalb gilt für diese drei CLIs:
+
+- **Pflicht**: Beim ersten nicht-trivialen User-Request in einem `EtroxTaran/*`-Repo
+  MUSS der Skill [`project-setup-check`](skills/project-setup-check/SKILL.md)
+  invoked werden. Das ist die tool-neutrale Nachbildung der Hook-Logik, identisch
+  was Prüfung und Nudge-Text angeht.
+- **Skill liegt** unter `~/.agents/skills/project-setup-check/` (Primärpfad für
+  Codex + Gemini, siehe §14) und zusätzlich unter `~/.claude/skills/` (redundant
+  für Claude).
+- **Schweigen ist Default**: der Skill macht nichts, solange das Repo nicht
+  `EtroxTaran/*` ist oder bereits konfiguriert. Kein Rauschen in fremden Repos.
+
 ---
 
 ## 9. Ticket ↔ PR Linkage (strikt)
