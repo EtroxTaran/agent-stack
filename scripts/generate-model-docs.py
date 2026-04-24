@@ -91,7 +91,7 @@ def render_registry_section(registry: dict[str, str]) -> str:
 ### LLM-Modell-Versionen (aus Registry)
 
 - **Claude**: Opus `{_g("CLAUDE_OPUS")}` · Sonnet `{_g("CLAUDE_SONNET")}` · Haiku `{_g("CLAUDE_HAIKU")}`
-- **OpenAI**: Coding `{_g("OPENAI_CODING")}`
+- **OpenAI (Codex-CLI Main)**: `{_g("OPENAI_MAIN")}`
 - **Gemini**: Pro `{_g("GEMINI_PRO")}` · Flash `{_g("GEMINI_FLASH")}`
 - **CLI-Pins**: Codex `{_g("CODEX_CLI_VERSION")}` · Cursor-Agent `{_g("CURSOR_AGENT_CLI_VERSION")}`
 

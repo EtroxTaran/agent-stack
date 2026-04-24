@@ -41,7 +41,7 @@ from pathlib import Path
 REQUIRED_KEYS: tuple[str, ...] = (
     "CLAUDE_OPUS", "CLAUDE_SONNET", "CLAUDE_HAIKU",
     "GEMINI_PRO", "GEMINI_FLASH",
-    "OPENAI_CODING",
+    "OPENAI_MAIN",
     "CODEX_CLI_VERSION", "CURSOR_AGENT_CLI_VERSION",
 )
 
@@ -126,22 +126,25 @@ def fetch_openai_models(api_key: str) -> dict[str, str]:
     # `created` ist Unix-Timestamp-Int — neuer → größer
     items.sort(key=lambda m: m.get("created", 0), reverse=True)
 
-    # OPENAI_CODING: bevorzugt `gpt-*-codex` oder `codex-*`, aber nicht `-mini` / `-max`
-    # / `-research` / `-preview`. Fallback auf irgendein Codex-Modell.
+    # OPENAI_MAIN: neuestes `gpt-5.*`-Modell für Codex-CLI-Config.
+    # Policy-Wechsel 2026-04: Codex-CLI nutzt das generische GPT-5-Chat-Modell,
+    # nicht mehr separate -codex-Varianten. Heuristik: höchster gpt-5.<minor>.
+    # Skip: -mini/-max/-research/-preview/-audio/-nano/-search/-codex (Legacy).
+    _BAD_SUFFIXES = ("-mini", "-max", "-research", "-preview", "-audio", "-nano", "-search", "-codex")
     preferred = None
     fallback = None
     for m in items:
         mid = m.get("id", "")
-        if "codex" not in mid:
+        if not mid.startswith("gpt-5"):
             continue
         if fallback is None:
             fallback = mid
-        if not any(tag in mid for tag in ("-mini", "-max", "-research", "-preview", "-audio")):
+        if not any(tag in mid for tag in _BAD_SUFFIXES):
             preferred = mid
             break
 
-    coding = preferred or fallback
-    return {"OPENAI_CODING": coding} if coding else {}
+    main = preferred or fallback
+    return {"OPENAI_MAIN": main} if main else {}
 
 
 def fetch_gemini_models(api_key: str) -> dict[str, str]:

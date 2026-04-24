@@ -80,18 +80,19 @@
   "codex": {
     "file": "configs/codex/config.toml",
     "type": "toml",
+    "_schema_note": "Codex nutzt top-level keys (siehe openai/codex config.schema.json). KEINE TOML-Sections wie [model] oder [sandbox] — das lädt nicht.",
     "required_keys": [
-      "model.name",
-      "model.effort",
-      "sandbox.mode",
-      "sandbox.approval",
-      "project_doc.max_bytes",
-      "project_doc.fallback_filenames"
+      "model",
+      "model_reasoning_effort",
+      "sandbox_mode",
+      "approval_policy",
+      "project_doc_max_bytes",
+      "project_doc_fallback_filenames"
     ],
     "expected_values": {
-      "model.effort": "medium",
-      "sandbox.mode": "workspace-write",
-      "sandbox.approval": "never"
+      "model_reasoning_effort": "medium",
+      "sandbox_mode": "workspace-write",
+      "approval_policy": "never"
     }
   },
   "release_notes": {
@@ -107,7 +108,7 @@
     "mappings": [
       {"cli": "gemini", "config_file": "configs/gemini/settings.json", "config_type": "json", "config_key": ".general.model",     "registry_key": "GEMINI_PRO"},
       {"cli": "gemini", "config_file": "configs/gemini/settings.json", "config_type": "json", "config_key": ".general.flashModel","registry_key": "GEMINI_FLASH"},
-      {"cli": "codex",  "config_file": "configs/codex/config.toml",    "config_type": "toml", "config_key": "model.name",         "registry_key": "OPENAI_CODING"}
+      {"cli": "codex",  "config_file": "configs/codex/config.toml",    "config_type": "toml", "config_key": "model",              "registry_key": "OPENAI_MAIN"}
     ]
   }
 }

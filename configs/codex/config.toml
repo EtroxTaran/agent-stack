@@ -1,16 +1,14 @@
 # Codex CLI Konfiguration — Teil des agent-stack
 # Symlink-Ziel: ~/.codex/config.toml
+# Schema-Referenz: openai/codex → codex-rs/core/config.schema.json (top-level keys, keine Sections)
 
-[model]
-name = "gpt-5.3-codex"
-effort = "medium"
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
 
-[sandbox]
-mode = "workspace-write"
-approval = "never"
+sandbox_mode = "workspace-write"
+approval_policy = "never"
 
-[project_doc]
-max_bytes = 65536
-fallback_filenames = ["AGENTS.md", "CODEX.md"]
+project_doc_max_bytes = 65536
+project_doc_fallback_filenames = ["AGENTS.md", "CODEX.md"]
 
 # [mcp_servers.<name>] wird per register.sh eingetragen

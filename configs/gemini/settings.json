@@ -21,7 +21,7 @@
       "warningAcknowledged": true
     },
     "model": "gemini-3.1-pro-preview",
-    "flashModel": "gemini-3-flash-preview"
+    "flashModel": "gemini-3.1-flash-live-preview"
   },
   "experimental": {
     "plan": true,
