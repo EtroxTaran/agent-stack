@@ -2,7 +2,7 @@
 # Symlink-Ziel: ~/.codex/config.toml
 
 [model]
-name = "gpt-5"
+name = "gpt-5.3-codex"
 effort = "medium"
 
 [sandbox]

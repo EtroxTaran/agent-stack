@@ -12,7 +12,7 @@
 - **Maintainer-Agent**: Nathan — Identity-Kern in `~/.openclaw/workspace/SOUL.md`
   ("direkt, proaktiv, kein Ja-Sager"). Hier bewusst NICHT dupliziert.
 - **Primary-Dev-CLI**: Claude Code (Plan: Opus 4.7 · Implement: Sonnet 4.6 · Subagents/Commits: Haiku 4.5).
-- **Reviewer-CLIs**: Codex (GPT-5.x), Cursor (composer-2), Gemini (2.5 Pro), Claude Opus 4.7.
+- **Reviewer-CLIs**: Codex, Cursor, Gemini, Claude — konkrete Modell-Pins in §8 (aus Registry).
 - **OpenClaw-Koexistenz**: `~/.openclaw/workspace/AGENTS.md` hält Nathan-Identität + Sub-Workspaces
   (11 Agents, Fleet-Architektur, Ownership-Map). Diese Datei hier = Engineering-Infrastructure.
   Beide referenzieren sich, leben aber separat.
@@ -210,10 +210,41 @@ Details: `github.com/EtroxTaran/ai-review-pipeline`.
   strukturiert, nie label-basiert.
 - **Primary-Channel**: Discord (ein Guild "Nathan Ops", Channel pro Projekt). Kein Telegram mehr.
 
-### Reviewer-Modell-Defaults (global)
+<!-- model-registry-start -->
+<!-- AUTO-GENERIERT aus ai-review-pipeline/registry/MODEL_REGISTRY.env -->
+<!-- NICHT manuell editieren — Änderungen kommen aus dem Weekly-Drift-Check -->
+<!-- Regeneriert: 2026-04-24 -->
 
-`codex: gpt-5.x` · `cursor: composer-2` · `gemini: gemini-2.5-pro` · `claude: claude-opus-4-7`.
-Pro Projekt überschreibbar via `.ai-review/config.yaml`.
+### Reviewer-Modell-Defaults (aus Registry)
+
+| Rolle | Modell | Quelle |
+|---|---|---|
+| Code-Review (Codex) | CLI-Default | `CODEX_CLI_VERSION=latest` |
+| Code-Cursor | CLI-Default | `CURSOR_AGENT_CLI_VERSION=latest` |
+| Security (Gemini) | `gemini-3.1-pro-preview` | `GEMINI_PRO` |
+| Design (Claude) | `claude-opus-4-7` | `CLAUDE_OPUS` |
+| AC-Second-Opinion | `claude-opus-4-7` | `CLAUDE_OPUS` |
+| Auto-Fix | `claude-sonnet-4-6` | `CLAUDE_SONNET` |
+| Fix-Loop | `claude-sonnet-4-6` | `CLAUDE_SONNET` |
+
+### LLM-Modell-Versionen (aus Registry)
+
+- **Claude**: Opus `claude-opus-4-7` · Sonnet `claude-sonnet-4-6` · Haiku `claude-haiku-4-5`
+- **OpenAI**: Coding `gpt-5.3-codex`
+- **Gemini**: Pro `gemini-3.1-pro-preview` · Flash `gemini-3-flash-preview`
+- **CLI-Pins**: Codex `latest` · Cursor-Agent `latest`
+
+Registry wird wöchentlich automatisch geprüft (Montag 08:00 UTC) via
+[`.github/workflows/model-registry-drift-check.yml`](.github/workflows/model-registry-drift-check.yml).
+Drift → auto-PR in [ai-review-pipeline](https://github.com/EtroxTaran/ai-review-pipeline).
+Manuelle Overrides via `AI_REVIEW_MODEL_<ROLE>` Env-Var oder
+`~/.openclaw/workspace/MODEL_REGISTRY.md` (Dev-Override).
+
+<!-- model-registry-end -->
+
+Override-Pfad pro Run: `AI_REVIEW_MODEL_<ROLE>` Env-Var · Dev-Override via
+`~/.openclaw/workspace/MODEL_REGISTRY.md`. Registry-Source-of-Truth liegt in
+[`ai-review-pipeline/registry/MODEL_REGISTRY.env`](https://github.com/EtroxTaran/ai-review-pipeline/blob/main/src/ai_review_pipeline/registry/MODEL_REGISTRY.env).
 
 ### Project-Setup-Step (automatisch bei Session-Start)
 
@@ -286,18 +317,18 @@ garantiert sichtbar.
 
 Niemals veraltete Versionen verwenden. Ältere Version im Code gefunden → STOPP → Nico informieren → Upgrade-Plan.
 
-### LLM-Modelle (Stand 2026-04)
+### LLM-Modelle
 
-- **Claude**: `claude-opus-4-7` · `claude-sonnet-4-6` · `claude-haiku-4-5`
-- **OpenAI**: `gpt-5` (nicht `gpt-4o`)
-- **Gemini**: `gemini-2.5-pro` · `gemini-2.0-flash`
-- **Codex**: aktuelle Version via OAuth-Integration prüfen
+Aktuelle Pins siehe §8 Reviewer-Charter (auto-generiert aus
+[`ai-review-pipeline/registry/MODEL_REGISTRY.env`](https://github.com/EtroxTaran/ai-review-pipeline/blob/main/src/ai_review_pipeline/registry/MODEL_REGISTRY.env)).
+Weekly-Drift-Check [`.github/workflows/model-registry-drift-check.yml`](.github/workflows/model-registry-drift-check.yml)
+prüft Montag 08:00 UTC automatisch und öffnet PR bei Drift.
 
 ### Version-Check vor Build
 
 1. Libraries: `use context7` im Prompt → aktuelle API-Docs.
 2. `npm install <pkg>`: vorher `npm info <pkg> version`.
-3. Modell-Auswahl: `python3 ~/.openclaw/workspace/scripts/model-version-check.py`.
+3. Modell-Auswahl: Registry ist SoT — siehe §8 + Weekly-Drift-Check.
 4. MCP-Server via npx: immer `@latest`.
 
 ❌ `claude-opus-4-5` wenn `-4-7` existiert · ❌ `npm install react@18` ohne Check
