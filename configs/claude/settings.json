@@ -1,5 +1,4 @@
 {
-  "model": "opus",
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "0",
@@ -118,6 +117,9 @@
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true
   },
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-ansi",
+  "remoteControlAtStartup": false,
   "voiceEnabled": true,
-  "skipDangerousModePermissionPrompt": true
+  "effortLevel": "high"
 }
