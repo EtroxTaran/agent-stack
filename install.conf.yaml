@@ -1,8 +1,19 @@
 # dotbot manifest — declarative symlinks for all 4 CLIs.
-# Source of truth: files in this repo. Targets: ~/.claude, ~/.cursor, ~/.gemini, ~/.codex
+# Source of truth: files in this repo. Targets: ~/.claude, ~/.cursor, ~/.gemini, ~/.codex, ~/.agents
 #
 # IMPORTANT: force: false — dotbot never overwrites real files silently.
 # Backup of existing real files is done beforehand by scripts/backup-existing.sh.
+#
+# Skills-Pfad-Konsolidierung (Issue #22, verifiziert 2026-04-24):
+# - Codex liest ~/.agents/skills/ (NICHT ~/.codex/skills/)
+# - Gemini akzeptiert ~/.agents/skills/ oder ~/.gemini/skills/
+# - Claude erwartet ~/.claude/skills/
+# - Cursor hat keinen nativen Skills-Support — siehe Follow-up-Issue für MCP-Bridge
+#
+# Deshalb:
+# - ~/.agents/skills/<name> ist Primär-SoT für Codex + Gemini (deckt beide via offizielle Docs)
+# - ~/.claude/skills/<name> redundanter Symlink ins Repo (Claude-Pfad-Erwartung)
+# - ~/.codex/skills/ und ~/.cursor/skills/ sind entfernt (ineffektiv)
 
 - defaults:
     link:
@@ -15,18 +26,46 @@
 # ACHTUNG: keine Pfade hier, die weiter unten per `link:` als Symlink gesetzt werden
 # (wie ~/.claude/hooks), sonst blockiert die vorab angelegte Leer-Directory den Symlink.
 - create:
+    - ~/.agents
+    - ~/.agents/skills
     - ~/.claude
     - ~/.claude/skills
     - ~/.cursor
     - ~/.cursor/rules
-    - ~/.cursor/skills
     - ~/.gemini
-    - ~/.gemini/skills
     - ~/.codex
-    - ~/.codex/skills
 
 # ---------------------------------------------------------------------------
-# Claude Code
+# Skills — Primärer SoT-Pfad (Codex + Gemini nativ)
+# ---------------------------------------------------------------------------
+- link:
+    ~/.agents/skills/ac-validate:
+      path: skills/ac-validate
+    ~/.agents/skills/ac-waiver:
+      path: skills/ac-waiver
+    ~/.agents/skills/code-review-expert:
+      path: skills/code-review-expert
+    ~/.agents/skills/design-review:
+      path: skills/design-review
+    ~/.agents/skills/issue-pickup:
+      path: skills/issue-pickup
+    ~/.agents/skills/nachfrage-respond:
+      path: skills/nachfrage-respond
+    ~/.agents/skills/pr-open:
+      path: skills/pr-open
+    ~/.agents/skills/release-checklist:
+      path: skills/release-checklist
+    ~/.agents/skills/review-gate:
+      path: skills/review-gate
+    ~/.agents/skills/security-audit:
+      path: skills/security-audit
+    ~/.agents/skills/security-waiver:
+      path: skills/security-waiver
+    ~/.agents/skills/tdd-guard:
+      path: skills/tdd-guard
+
+# ---------------------------------------------------------------------------
+# Claude Code — base files + redundanter Skills-Symlink ins Repo
 # ---------------------------------------------------------------------------
 - link:
     ~/.claude/CLAUDE.md:
@@ -35,69 +74,57 @@
       path: configs/claude/settings.json
     ~/.claude/hooks:
       path: configs/claude/hooks
+    ~/.claude/skills/ac-validate:
+      path: skills/ac-validate
+    ~/.claude/skills/ac-waiver:
+      path: skills/ac-waiver
     ~/.claude/skills/code-review-expert:
       path: skills/code-review-expert
+    ~/.claude/skills/design-review:
+      path: skills/design-review
     ~/.claude/skills/issue-pickup:
       path: skills/issue-pickup
+    ~/.claude/skills/nachfrage-respond:
+      path: skills/nachfrage-respond
     ~/.claude/skills/pr-open:
       path: skills/pr-open
+    ~/.claude/skills/release-checklist:
+      path: skills/release-checklist
     ~/.claude/skills/review-gate:
       path: skills/review-gate
+    ~/.claude/skills/security-audit:
+      path: skills/security-audit
+    ~/.claude/skills/security-waiver:
+      path: skills/security-waiver
+    ~/.claude/skills/tdd-guard:
+      path: skills/tdd-guard
 
 # ---------------------------------------------------------------------------
-# Cursor CLI
-# cli-config.json is tricky — existing install will likely have one.
-# backup-existing.sh moves a real file out of the way before we symlink.
+# Cursor CLI — rules + AGENTS.md. Skills-Bridge über MCP (Follow-up-Issue).
+# cli-config.json NICHT symlinken: cursor-agent mcp add mutiert sie.
 # ---------------------------------------------------------------------------
 - link:
     ~/.cursor/AGENTS.md:
       path: AGENTS.md
     ~/.cursor/rules/global.mdc:
       path: configs/cursor/rules/global.mdc
-    # ~/.cursor/cli-config.json NICHT symlinken: cursor-agent mcp add mutiert sie
-    # und ersetzt Symlinks durch reale Files. Copy-Template via shell-Step.
-    ~/.cursor/skills/code-review-expert:
-      path: skills/code-review-expert
-    ~/.cursor/skills/issue-pickup:
-      path: skills/issue-pickup
-    ~/.cursor/skills/pr-open:
-      path: skills/pr-open
-    ~/.cursor/skills/review-gate:
-      path: skills/review-gate
 
 # ---------------------------------------------------------------------------
-# Gemini CLI
+# Gemini CLI — AGENTS.md only. Skills kommen via ~/.agents/skills/.
+# settings.json NICHT symlinken: register.sh mutiert sie live (jq-merge).
 # ---------------------------------------------------------------------------
 - link:
     ~/.gemini/GEMINI.md:
       path: AGENTS.md
-    # ~/.gemini/settings.json NICHT symlinken: register.sh mutiert sie live (jq-merge).
-    # Copy-Template via shell-Step unten.
-    ~/.gemini/skills/code-review-expert:
-      path: skills/code-review-expert
-    ~/.gemini/skills/issue-pickup:
-      path: skills/issue-pickup
-    ~/.gemini/skills/pr-open:
-      path: skills/pr-open
-    ~/.gemini/skills/review-gate:
-      path: skills/review-gate
 
 # ---------------------------------------------------------------------------
-# Codex CLI
+# Codex CLI — AGENTS.md only. Skills kommen via ~/.agents/skills/ (offizieller
+# Codex-Discovery-Pfad, siehe developers.openai.com/codex/skills).
+# config.toml NICHT symlinken: register.sh mutiert sie live (toml-merge).
 # ---------------------------------------------------------------------------
 - link:
     ~/.codex/AGENTS.md:
       path: AGENTS.md
-    # ~/.codex/config.toml NICHT symlinken: register.sh mutiert sie live (toml-merge).
-    # Copy-Template via shell-Step unten.
-    ~/.codex/skills/code-review-expert:
-      path: skills/code-review-expert
-    ~/.codex/skills/issue-pickup:
-      path: skills/issue-pickup
-    ~/.codex/skills/pr-open:
-      path: skills/pr-open
-    ~/.codex/skills/review-gate:
-      path: skills/review-gate
 
 # ---------------------------------------------------------------------------
 # Copy-Templates für live-mutable Configs (NICHT symlinked).

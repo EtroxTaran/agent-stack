@@ -46,31 +46,43 @@ printf '%sSymlink targets → agent-stack repo%s\n' "${C_DIM}" "${C_RESET}"
 # format: "link_path:expected_target_relative_to_repo"
 # NOTE: Nur statische Dateien sind symlinked. Live-mutable Configs (cursor/cli-config,
 # gemini/settings.json, codex/config.toml) sind lokale Kopien — separat geprüft.
+#
+# Skills-Pfad-Strategie (siehe install.conf.yaml):
+# - ~/.agents/skills/<name>     → Primär-SoT für Codex + Gemini (offizielle Discovery-Pfade)
+# - ~/.claude/skills/<name>     → redundanter Claude-spezifischer Pfad
+# - ~/.cursor/skills/           → nicht mehr angelegt (Cursor hat keinen nativen Support,
+#                                  MCP-Bridge als Follow-up — siehe #25)
+# - ~/.codex/skills/            → nicht mehr angelegt (Codex nutzt ~/.agents/skills/)
+SKILLS=(
+    ac-validate
+    ac-waiver
+    code-review-expert
+    design-review
+    issue-pickup
+    nachfrage-respond
+    pr-open
+    release-checklist
+    review-gate
+    security-audit
+    security-waiver
+    tdd-guard
+)
+
 SYMLINK_CHECKS=(
     "${HOME}/.claude/CLAUDE.md:AGENTS.md"
     "${HOME}/.claude/settings.json:configs/claude/settings.json"
     "${HOME}/.claude/hooks:configs/claude/hooks"
-    "${HOME}/.claude/skills/code-review-expert:skills/code-review-expert"
-    "${HOME}/.claude/skills/issue-pickup:skills/issue-pickup"
-    "${HOME}/.claude/skills/pr-open:skills/pr-open"
-    "${HOME}/.claude/skills/review-gate:skills/review-gate"
     "${HOME}/.cursor/AGENTS.md:AGENTS.md"
     "${HOME}/.cursor/rules/global.mdc:configs/cursor/rules/global.mdc"
-    "${HOME}/.cursor/skills/code-review-expert:skills/code-review-expert"
-    "${HOME}/.cursor/skills/issue-pickup:skills/issue-pickup"
-    "${HOME}/.cursor/skills/pr-open:skills/pr-open"
-    "${HOME}/.cursor/skills/review-gate:skills/review-gate"
     "${HOME}/.gemini/GEMINI.md:AGENTS.md"
-    "${HOME}/.gemini/skills/code-review-expert:skills/code-review-expert"
-    "${HOME}/.gemini/skills/issue-pickup:skills/issue-pickup"
-    "${HOME}/.gemini/skills/pr-open:skills/pr-open"
-    "${HOME}/.gemini/skills/review-gate:skills/review-gate"
     "${HOME}/.codex/AGENTS.md:AGENTS.md"
-    "${HOME}/.codex/skills/code-review-expert:skills/code-review-expert"
-    "${HOME}/.codex/skills/issue-pickup:skills/issue-pickup"
-    "${HOME}/.codex/skills/pr-open:skills/pr-open"
-    "${HOME}/.codex/skills/review-gate:skills/review-gate"
 )
+
+# Skill-Symlinks dynamisch aus der Liste generieren
+for skill in "${SKILLS[@]}"; do
+    SYMLINK_CHECKS+=("${HOME}/.agents/skills/${skill}:skills/${skill}")
+    SYMLINK_CHECKS+=("${HOME}/.claude/skills/${skill}:skills/${skill}")
+done
 
 # Live-mutable Configs: existieren als reale Datei (KEIN Symlink), werden von
 # register.sh in-place mutiert. Nur Existenz-Check.
@@ -190,21 +202,30 @@ fi
 # ---------------------------------------------------------------------------
 # 3. Skill-Directories erreichbar
 # ---------------------------------------------------------------------------
-printf '\n%sSkill directories reachable across CLIs%s\n' "${C_DIM}" "${C_RESET}"
+printf '\n%sSkill directories reachable (primary %s~/.agents/skills%s + Claude)%s\n' \
+    "${C_DIM}" "${C_RESET}" "${C_DIM}" "${C_RESET}"
 
-SKILLS=(code-review-expert issue-pickup pr-open review-gate)
-CLI_DIRS=(".claude" ".cursor" ".gemini" ".codex")
-
-for cli_dir in "${CLI_DIRS[@]}"; do
-    for skill in "${SKILLS[@]}"; do
-        path="${HOME}/${cli_dir}/skills/${skill}/SKILL.md"
+# Alle 12 Skills müssen in ~/.agents/skills/ (primary) UND ~/.claude/skills/ (redundant) da sein.
+# Cursor + Gemini + Codex erreichen sie über ~/.agents/skills/ (nativ) oder via eigenen Fallback.
+for skill in "${SKILLS[@]}"; do
+    for base in ".agents" ".claude"; do
+        path="${HOME}/${base}/skills/${skill}/SKILL.md"
         if [[ -r "${path}" ]]; then
-            _pass "${cli_dir}/skills/${skill}/SKILL.md"
+            _pass "${base}/skills/${skill}/SKILL.md"
         else
             _fail "missing: ${path}"
         fi
     done
 done
+
+# Cursor: dokumentierter Gap — keine nativen Skills, siehe Follow-up-Issue
+if [[ -d "${HOME}/.cursor/skills" ]]; then
+    _warn "\${HOME}/.cursor/skills existiert noch (legacy) — kann bei Bedarf entfernt werden"
+fi
+# Codex: nicht mehr an ${HOME}/.codex/skills/, sondern ${HOME}/.agents/skills/
+if [[ -d "${HOME}/.codex/skills" ]]; then
+    _warn "\${HOME}/.codex/skills existiert noch (legacy) — Codex nutzt \${HOME}/.agents/skills/"
+fi
 
 # ---------------------------------------------------------------------------
 # 4. ai-review-pipeline (optional Integration)
