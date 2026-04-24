@@ -112,7 +112,20 @@ def fetch_anthropic_models(api_key: str) -> dict[str, str]:
 
 
 def fetch_openai_models(api_key: str) -> dict[str, str]:
-    """Fetch OpenAI-Modelle via /v1/models — Heuristik für Codex-Variante."""
+    """Fetch OpenAI-Modelle via /v1/models — Heuristik für Codex-Variante.
+
+    WARNUNG: Die OpenAI-REST-API listet den API-Tier-Katalog. Bei Codex-CLI-
+    Nutzung via ChatGPT-Plus/Pro-Subscription ist der Codex-Subscription-
+    Katalog (`chatgpt.com/backend-api/codex/models`) autoritativ — der hat
+    typischerweise aktuellere Modelle (z.B. `gpt-5.5` war dort Tage früher
+    sichtbar als im API-Tier). Diese Funktion wird deshalb im GH-Actions-
+    Weekly-Drift-Check NICHT mehr direkt genutzt — stattdessen übernimmt der
+    lokale tägliche Cron (`~/.openclaw/workspace/scripts/model-version-check.py
+    → fetch_codex_chatgpt()`) die OPENAI_MAIN-Pflege. Hier nur als Fallback
+    für Fälle, wo keine OAuth-Credentials vorhanden sind (Drittnutzer fork).
+
+    Siehe: ~/.claude/projects/-home-clawd/memory/feedback_openai_uses_codex_subscription.md
+    """
     try:
         data = _http_json(
             "https://api.openai.com/v1/models",
@@ -353,11 +366,22 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print("⏭️  ANTHROPIC_API_KEY nicht gesetzt — skip Anthropic")
 
-    if openai_key:
-        print("🔍 Fetch OpenAI…")
+    # OpenAI: SKIP im GH-Actions-Weekly. API-Tier (/v1/models) lagt dem
+    # Codex-Subscription-Katalog (chatgpt.com/backend-api/codex/models)
+    # hinterher — ein Fetch von hier würde OPENAI_MAIN=gpt-5.5 fälschlich
+    # auf gpt-5.4 zurückdrücken. Die OpenAI-Pins werden ausschließlich vom
+    # lokalen täglichen Cron (`~/.openclaw/workspace/scripts/model-version-
+    # check.py`) mit OAuth-Subscription-Access gepflegt.
+    # Force-flag AI_REVIEW_DRIFT_CHECK_OPENAI_API=1 erzwingt API-Tier-Fetch
+    # trotzdem (für Downstream-Forks ohne Codex-Subscription).
+    if openai_key and os.environ.get("AI_REVIEW_DRIFT_CHECK_OPENAI_API") == "1":
+        print("🔍 Fetch OpenAI (API-Tier, forced via env-var)…")
         candidates.update(fetch_openai_models(openai_key))
     else:
-        print("⏭️  OPENAI_API_KEY nicht gesetzt — skip OpenAI")
+        print(
+            "⏭️  OpenAI skip — SoT ist Codex-Subscription (lokaler Cron). "
+            "API-Tier-Fetch via AI_REVIEW_DRIFT_CHECK_OPENAI_API=1 erzwingbar."
+        )
 
     if gemini_key:
         print("🔍 Fetch Gemini…")
