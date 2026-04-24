@@ -1,6 +1,8 @@
-# Shadow-Mode vs. Cutover — Warum zwei Pipelines parallel laufen
+# Shadow-Mode vs. Cutover — Historisches Deployment-Pattern + Playbook
 
-> **TL;DR:** Auf dem ai-portal-Repo laufen aktuell zwei unabhängige Review-Pipelines gleichzeitig. Die alte (v1) wurde vor der Extraction direkt im Repo entwickelt und ist seit langem eingespielt; sie blockiert Merges wenn Reviews fehlschlagen. Die neue (v2) nutzt die extrahierte Pipeline aus dem agent-stack-Ökosystem und läuft bewusst nicht-blockierend. Dieser Shadow-Modus erlaubt es, die neue Pipeline unter Real-Bedingungen zu validieren, ohne Entwicklungsarbeit zu riskieren. Der Cutover (Phase 5) tauscht v1 gegen v2 aus, sobald v2 bewiesen hat, dass sie zuverlässig das richtige Urteil liefert.
+> **Status seit 2026-04-24:** Phase-5-Cutover im ai-portal abgeschlossen — v2 ist die einzige Pipeline, v1 Legacy-Workflows sind gelöscht. Diese Seite beschreibt das Muster als **wiederverwendbares Playbook** für künftige Pipeline-Migrationen, nicht als aktuellen Laufzustand.
+>
+> **TL;DR (historisch):** Zwischen 2026-04-20 und 2026-04-24 liefen auf ai-portal zwei unabhängige Review-Pipelines gleichzeitig. Die alte (v1) war direkt im Repo verdrahtet und blockierte Merges. Die neue (v2) nutzte die extrahierte `ai-review-pipeline` aus dem agent-stack-Ökosystem und lief bewusst nicht-blockierend. Dieser Shadow-Modus erlaubte es, die neue Pipeline unter Real-Bedingungen zu validieren, ohne Entwicklungsarbeit zu riskieren. Der Cutover (Phase 5) tauschte v1 gegen v2 aus, nachdem v2 bewiesen hatte, dass sie zuverlässig das richtige Urteil liefert.
 
 ## Wie es funktioniert
 

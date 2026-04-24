@@ -1,6 +1,8 @@
-# Status-Contexts — `ai-review/*` vs. `ai-review-v2/*`
+# Status-Contexts — `ai-review/*` (seit Cutover 2026-04-24 einziger Raum)
 
-> **TL;DR:** Jede Review-Stage schreibt am Ende einen GitHub-Commit-Status auf den PR-HEAD-Commit. Der "Context-Name" dieses Status entscheidet, ob die Branch-Protection ihn als Required-Check behandelt. Aktuell laufen zwei parallele Präfix-Räume: `ai-review/*` ist die Legacy-v1-Pipeline (required), `ai-review-v2/*` ist die neue Shadow-Pipeline (non-required). Diese Seite zeigt die vollständige Matrix und was beim Cutover zu Phase 5 mit den Namen passiert.
+> **Status seit 2026-04-24:** Seit dem Phase-5-Cutover (ai-portal PR#44) existiert nur noch der `ai-review/*`-Namespace. Der `ai-review-v2/*`-Präfix wurde beim Cutover aufgelöst. Die Matrix unten bleibt als **historisches Playbook** für künftige Shadow-Migrationen dokumentiert.
+>
+> **TL;DR (historisch):** Jede Review-Stage schreibt am Ende einen GitHub-Commit-Status auf den PR-HEAD-Commit. Der "Context-Name" dieses Status entscheidet, ob die Branch-Protection ihn als Required-Check behandelt. In Phase 4 liefen zwei parallele Präfix-Räume: `ai-review/*` (v1 Legacy, required) und `ai-review-v2/*` (v2 Shadow, non-required). Beim Cutover zu Phase 5 wurde v1 gelöscht, v2 übernahm den `ai-review/*`-Namespace.
 
 ## Kontext-Matrix
 

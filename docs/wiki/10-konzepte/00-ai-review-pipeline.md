@@ -92,10 +92,10 @@ Details: [`40-setup/20-ai-review-config-schema.md`](../40-setup/20-ai-review-con
 
 ### Status-Contexts
 
-Jede Stage schreibt einen GitHub-Commit-Status:
+Jede Stage schreibt einen GitHub-Commit-Status. Seit dem Phase-5-Cutover (2026-04-24) ist nur noch ein Namespace live:
 
-- v1 Legacy-Pipeline (ai-portal): `ai-review/code`, `ai-review/code-cursor`, `ai-review/security`, `ai-review/design`, `ai-review/ac-validation`
-- v2 Shadow-Pipeline: `ai-review-v2/code`, `ai-review-v2/code-cursor`, `ai-review-v2/security`, `ai-review-v2/design`, `ai-review-v2/ac-validation`
+- Produktiv (seit 2026-04-24): `ai-review/code`, `ai-review/code-cursor`, `ai-review/security`, `ai-review/design`, `ai-review/ac-validation`
+- Historisch (Phase 4 Shadow, 2026-04-20 bis 2026-04-24): `ai-review-v2/*` — nicht mehr in Verwendung, Präfix-Mechanik bleibt als Playbook für künftige Shadow-Migrationen dokumentiert
 
 Das Präfix wird via CLI-Flag `--status-context-prefix` gesteuert. Details: [`70-reference/20-status-contexts.md`](../70-reference/20-status-contexts.md).
 

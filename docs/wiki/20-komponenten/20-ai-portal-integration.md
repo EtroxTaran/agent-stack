@@ -1,6 +1,8 @@
 # ai-portal Integration — Wie das Ziel-Projekt die Pipeline nutzt
 
-> **TL;DR:** Das ai-portal-Repo ist das erste Produktiv-Projekt, das die AI-Review-Toolchain nutzt. Es hat eine alte Pipeline, die seit langem eingespielt ist und Merges blockiert (v1), sowie eine neue Pipeline, die parallel nicht-blockierend mitläuft (v2 Shadow). Die Integration besteht aus einer Config-Datei, einem Shadow-Workflow und einer Branch-Protection-Einstellung. Sobald v2 sich über mehrere Wochen als zuverlässig erweist, wird v1 abgeschaltet.
+> **Status seit 2026-04-24:** Phase-5-Cutover abgeschlossen (PR#44). Die Seite beschreibt die Post-Cutover-Realität: **nur noch v2**, die 5 v1-Legacy-Workflows gelöscht, `ai-review-v2-shadow.yml` → `ai-review.yml` umbenannt, alle 5 Stages `blocking: true`. Phase-4-Mechanik (zwei parallele Pipelines) siehe [`10-konzepte/20-shadow-vs-cutover.md`](../10-konzepte/20-shadow-vs-cutover.md) als Playbook für künftige Migrationen.
+>
+> **TL;DR (Post-Cutover):** Das ai-portal-Repo ist das erste Produktiv-Projekt, das die AI-Review-Toolchain nutzt. Die Integration besteht aus einer Config-Datei (`.ai-review/config.yaml`), einem produktiven Workflow (`ai-review.yml`) und einer Branch-Protection-Einstellung (`ai-review/consensus` als Required-Check). Shadow-Phase war 2026-04-20 bis 2026-04-24.
 
 ## Wie es funktioniert
 

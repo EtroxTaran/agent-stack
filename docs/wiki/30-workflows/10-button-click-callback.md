@@ -220,8 +220,9 @@ jobs:
           echo "Action: ${{ inputs.action }}"
           echo "PR: ${{ inputs.pr_number }}"
           echo "User: ${{ inputs.user_id }}"
-      # Phase 4: nur Log-Stub
-      # Phase 5 TODO: echte Aktion per action
+      # Stand 2026-04-24: Log-Stub bewusst aktiv — Button-Actions werden noch nicht
+      # automatisiert ausgeführt. Follow-up tracked in agent-stack-Issue #20 (Epic)
+      # unter "Phase 2 — Audit-Trail & Visibility" bzw. "Phase 5 — Hardening".
 ```
 
 In Phase 4 ist der Workflow ein **Stub** — er loggt nur, was geklickt wurde, ohne die Aktion auszuführen. Das reicht um den E2E-Flow zu validieren, ohne bei Bugs echte Merges/Retries auszulösen.

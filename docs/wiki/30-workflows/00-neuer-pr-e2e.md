@@ -100,7 +100,7 @@ Jeder Job schreibt **genau einen** Status pro PR-HEAD-SHA:
 | ac-validate | `ai-review/ac-validation` oder `ai-review-v2/ac-validation` | success / pending / failure |
 | consensus | `ai-review/consensus` oder `ai-review-v2/consensus` | success / pending / failure |
 
-Der **Context-Präfix** ist entscheidend: `ai-review/*` ist v1 Legacy (required), `ai-review-v2/*` ist v2 Shadow (non-required in Phase 4). Details: [`70-reference/20-status-contexts.md`](../70-reference/20-status-contexts.md).
+Der **Context-Präfix** ist entscheidend: Seit dem Phase-5-Cutover am 2026-04-24 ist `ai-review/*` der einzige produktive Namespace. Das `ai-review-v2/*`-Präfix aus der Shadow-Phase ist nicht mehr in Verwendung. Details: [`70-reference/20-status-contexts.md`](../70-reference/20-status-contexts.md).
 
 ### Die Consensus-Aggregation im Detail
 

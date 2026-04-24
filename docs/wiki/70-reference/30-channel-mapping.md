@@ -1,6 +1,8 @@
 # Discord-Channel-Mapping
 
-> **TL;DR:** Jedes Projekt hat zwei Discord-Channels: einen regulären für Produktions-Reviews und einen Shadow-Channel für nicht-blockierende Tests. Dazu kommt ein gemeinsamer Alerts-Kanal für Eskalationen. Alle Channels leben in der Discord-Guild "Nathan Ops". Die Channel-IDs werden als Env-Variablen im Runner-Env referenziert, damit Scripts und Workflows sie nicht hart verdrahten müssen.
+> **Status seit 2026-04-24:** ai-portal nutzt nach dem Phase-5-Cutover nur noch den Produktions-Channel `#ai-review-ai-portal`. Der Shadow-Channel `#ai-review-shadow-ai-portal` ist stillgelegt (bleibt als Historie). Die Channel-Liste unten zeigt alle erstellten Kanäle — die `_SHADOW`-Slots sind nur relevant, wenn eine neue Repo-spezifische Shadow-Migration startet.
+>
+> **TL;DR:** Jedes Projekt hat in Phase 4 zwei Discord-Channels: einen regulären für Produktions-Reviews und einen Shadow-Channel für nicht-blockierende Tests. Dazu kommt ein gemeinsamer Alerts-Kanal für Eskalationen. Alle Channels leben in der Discord-Guild "Nathan Ops". Die Channel-IDs werden als Env-Variablen im Runner-Env referenziert, damit Scripts und Workflows sie nicht hart verdrahten müssen.
 
 ## Channel-Tabelle
 

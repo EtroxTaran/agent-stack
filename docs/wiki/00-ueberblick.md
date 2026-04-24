@@ -81,14 +81,15 @@ Jede Stage liefert einen Score 1–10 plus Findings. Die Consensus-Logik aggregi
 
 Details: [`10-konzepte/10-consensus-scoring.md`](10-konzepte/10-consensus-scoring.md).
 
-### Phasen-Modell
+### Phasen-Modell (Historie)
 
-Die Toolchain läuft aktuell in zwei Modi parallel auf dem Zielprojekt:
+Die Toolchain lief bis zum 2026-04-24 in zwei Modi parallel auf dem ai-portal-Repo. Mit dem **Phase-5-Cutover am 2026-04-24 (ai-portal PR#44)** ist **v2 die einzige Pipeline**:
 
-- **v1** (Legacy-Pipeline, live, blocking): Fest verdrahtet im ai-portal-Repo, Stages als einzelne YAML-Workflows. Required-Check `ai-review/consensus` blockiert Merges.
-- **v2 Shadow** (neue Pipeline, non-blocking): Nutzt die extrahierte `ai-review-pipeline` aus dem agent-stack-Ökosystem. Status-Context `ai-review-v2/consensus` — parallel, aber nicht in der Branch-Protection.
+- Die 5 v1-Legacy-Workflows (`ai-code-review.yml`, `ai-security-review.yml`, `ai-design-review.yml`, `ai-review-scope-check.yml`, `ai-review-consensus.yml`) wurden gelöscht.
+- `ai-review-v2-shadow.yml` → `ai-review.yml` (renamed), Shadow-Flags entfernt, `blocking: true` für alle 5 Stages.
+- Required-Check ist weiterhin `ai-review/consensus` — aber jetzt hinter der v2-Logik (kein Gap beim Cutover, da Name beibehalten).
 
-Der Cutover von v1 auf v2 (Phase 5) tauscht nur die Required-Checks aus und aktiviert `blocking: true` in der Config. Details: [`10-konzepte/20-shadow-vs-cutover.md`](10-konzepte/20-shadow-vs-cutover.md) und [`30-workflows/40-cutover-phase-4-zu-5.md`](30-workflows/40-cutover-phase-4-zu-5.md).
+Das Shadow-Muster bleibt als **wiederverwendbares Playbook** für künftige Pipeline-Migrationen dokumentiert: [`10-konzepte/20-shadow-vs-cutover.md`](10-konzepte/20-shadow-vs-cutover.md) und [`30-workflows/40-cutover-phase-4-zu-5.md`](30-workflows/40-cutover-phase-4-zu-5.md). Changelog-Eintrag: [`80-historie/00-changelog.md#2026-04-24-phase-5-cutover-im-ai-portal-pr44`](80-historie/00-changelog.md).
 
 ### Infrastruktur-Fakten
 
@@ -103,13 +104,11 @@ Der Cutover von v1 auf v2 (Phase 5) tauscht nur die Required-Checks aus und akti
 
 Details pro Komponente in [`20-komponenten/`](20-komponenten/).
 
-### Was ist gerade live?
+### Was ist gerade live? (Stand 2026-04-24, Post-Cutover)
 
-Stand dieses Dokuments:
-
-- **Infrastruktur:** n8n Up 2+ Tage, Funnel aktiv, Runner online, alle drei n8n-Workflows aktiv (dispatcher, callback, escalation)
-- **Pipeline:** v1 Legacy läuft blocking im ai-portal, v2 Shadow läuft non-blocking auf demselben PR parallel
-- **Letzter E2E-Proof:** Shadow-Run #24853468198 mit allen 6 Jobs + Consensus success
+- **Infrastruktur:** n8n Up, Funnel aktiv, Runner online, alle drei n8n-Workflows aktiv (dispatcher, callback, escalation)
+- **Pipeline:** v2 ist die **einzige** Pipeline im ai-portal (seit Phase-5-Cutover am 2026-04-24, PR#44). Alle 5 Stages `blocking: true`, Required-Check `ai-review/consensus` hinter v2-Logik.
+- **Letzter Shadow-E2E-Proof vor Cutover:** Run #24853468198 mit allen 6 Jobs + Consensus success (dokumentiert im Changelog)
 - **Tests:** 13/13 Callback-Unit-Tests + 25/25 E2E-Validation-Checks grün
 
 Aktueller Status immer via [`ops/n8n/tests/ai-review-e2e-validate.sh`](../../ops/n8n/tests/ai-review-e2e-validate.sh) prüfbar.
