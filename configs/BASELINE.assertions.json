@@ -1,0 +1,113 @@
+{
+  "_meta": {
+    "description": "Machine-readable Soll-State für audit-cli-settings.sh. Siehe BASELINE.md für Begründungen.",
+    "schema_version": 1,
+    "updated": "2026-04-24"
+  },
+  "claude": {
+    "file": "configs/claude/settings.json",
+    "type": "json",
+    "required_keys": [
+      ".model",
+      ".env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS",
+      ".env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE",
+      ".env.CLAUDE_CODE_MAX_OUTPUT_TOKENS",
+      ".env.ENABLE_TOOL_SEARCH",
+      ".permissions.defaultMode",
+      ".permissions.deny",
+      ".hooks.SessionStart",
+      ".hooks.PreToolUse",
+      ".hooks.PostToolUse",
+      ".hooks.Stop"
+    ],
+    "expected_values": {
+      ".model": "opus",
+      ".permissions.defaultMode": "acceptEdits",
+      ".env.ENABLE_TOOL_SEARCH": "1",
+      ".env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80"
+    },
+    "required_deny_patterns": [
+      "Bash(rm *)",
+      "Bash(sudo *)",
+      "Bash(git push --force*)",
+      "Read(**/.env)",
+      "Read(~/.ssh/**)"
+    ]
+  },
+  "cursor": {
+    "file": "configs/cursor/cli-config.json",
+    "type": "json",
+    "required_keys": [
+      ".model.modelId",
+      ".approvalMode",
+      ".permissions.allow",
+      ".sandbox.mode",
+      ".attribution.attributeCommitsToAgent",
+      ".attribution.attributePRsToAgent"
+    ],
+    "expected_values": {
+      ".model.modelId": "composer-2",
+      ".approvalMode": "allowlist",
+      ".attribution.attributeCommitsToAgent": true,
+      ".attribution.attributePRsToAgent": true
+    }
+  },
+  "gemini": {
+    "file": "configs/gemini/settings.json",
+    "type": "json",
+    "required_keys": [
+      ".security.auth.selectedType",
+      ".tools.autoAccept",
+      ".tools.toolOutputMasking.enabled",
+      ".general.previewFeatures",
+      ".general.model",
+      ".general.flashModel",
+      ".general.sessionRetention.enabled",
+      ".experimental.plan",
+      ".experimental.enableAgents",
+      ".experimental.checkpointing.enabled",
+      ".context.fileName"
+    ],
+    "expected_values": {
+      ".security.auth.selectedType": "oauth-personal",
+      ".tools.autoAccept": true,
+      ".general.previewFeatures": true,
+      ".experimental.plan": true,
+      ".experimental.enableAgents": true,
+      ".experimental.checkpointing.enabled": true
+    }
+  },
+  "codex": {
+    "file": "configs/codex/config.toml",
+    "type": "toml",
+    "required_keys": [
+      "model.name",
+      "model.effort",
+      "sandbox.mode",
+      "sandbox.approval",
+      "project_doc.max_bytes",
+      "project_doc.fallback_filenames"
+    ],
+    "expected_values": {
+      "model.effort": "medium",
+      "sandbox.mode": "workspace-write",
+      "sandbox.approval": "never"
+    }
+  },
+  "release_notes": {
+    "_comment": "GitHub-Repos fürs Release-Notes-Scraping. Best-effort — leere Response ist kein Fehler.",
+    "claude": "anthropics/claude-code",
+    "cursor": "cursor/cli",
+    "gemini": "google-gemini/gemini-cli",
+    "codex": "openai/codex"
+  },
+  "model_registry": {
+    "_comment": "Cross-Check CLI-Config-Modelle gegen ~/.openclaw/workspace/MODEL_REGISTRY.md. Wird von _check_model_registry in audit-cli-settings.sh gelesen. Claude/Cursor nicht gemappt: Claude nutzt Alias 'opus' (vom SDK resolved), Cursor kein öffentliches Modell-Registry.",
+    "path": "~/.openclaw/workspace/MODEL_REGISTRY.md",
+    "mappings": [
+      {"cli": "gemini", "config_file": "configs/gemini/settings.json", "config_type": "json", "config_key": ".general.model",     "registry_key": "GEMINI_PRO"},
+      {"cli": "gemini", "config_file": "configs/gemini/settings.json", "config_type": "json", "config_key": ".general.flashModel","registry_key": "GEMINI_FLASH"},
+      {"cli": "codex",  "config_file": "configs/codex/config.toml",    "config_type": "toml", "config_key": "model.name",         "registry_key": "OPENAI_CODING"}
+    ]
+  }
+}
