@@ -1,0 +1,72 @@
+# Weekly Agent-Stack Health Report
+#
+# Montag 07:00 UTC — läuft vor dem Model-Registry-Drift-Check (08:00 UTC).
+# Erzeugt einen JSON-Report über agent-stack-Gesundheit und postet als
+# Discord-Embed in #agent-stack-health.
+#
+# Closes: agent-stack#21 (Weekly-Health-Report)
+# Refs:   agent-stack#20 (Epic)
+
+name: Weekly Agent-Stack Health Report
+
+on:
+  schedule:
+    # Montag 07:00 UTC — frühmorgens vor Model-Drift-Check, damit beide
+    # Berichte montags nacheinander erscheinen (Health zuerst, damit man
+    # sieht ob die Infra grün ist bevor Drift gemeldet wird).
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry-run: nur Report ausgeben, kein Discord-Post"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+
+jobs:
+  health-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout agent-stack
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install minimal deps (requests + pyyaml)
+        run: pip install --quiet requests pyyaml
+
+      - name: Generate Health-Report JSON
+        id: report
+        run: |
+          set -euo pipefail
+          bash scripts/weekly-health-report.sh > /tmp/health-report.json
+          echo "Report generated ($(wc -c < /tmp/health-report.json) bytes):"
+          cat /tmp/health-report.json
+
+      - name: Post to Discord
+        if: github.event.inputs.dry_run != 'true'
+        env:
+          DISCORD_WEBHOOK_AGENT_STACK_HEALTH: ${{ secrets.DISCORD_WEBHOOK_AGENT_STACK_HEALTH }}
+        run: |
+          python3 scripts/weekly-health-report.py < /tmp/health-report.json
+
+      - name: Dry-Run Preview
+        if: github.event.inputs.dry_run == 'true'
+        env:
+          DRY_RUN: "1"
+        run: |
+          python3 scripts/weekly-health-report.py < /tmp/health-report.json
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-report-${{ github.run_id }}
+          path: /tmp/health-report.json
+          retention-days: 30

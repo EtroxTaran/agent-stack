@@ -18,6 +18,7 @@ Usage:
     python provision_channels.py --guild-id <id> --projects ai-portal,nathan-cockpit
     python provision_channels.py --guild-id <id> --projects ai-portal --dry-run
     python provision_channels.py --guild-id <id> --projects ai-portal --category "AI Review"
+    python provision_channels.py --guild-id <id> --extra-channel agent-stack-health
 
 Environment:
     DISCORD_BOT_TOKEN  (required)
@@ -126,12 +127,20 @@ def provision_guild(
     projects: list[str],
     dry_run: bool = False,
     category_name: str = CATEGORY_NAME,
+    extra_channels: Optional[list[str]] = None,
 ) -> dict:
     """
     Legt alle benötigten Channels im Discord-Guild an.
 
     Idempotent: existierende Channels werden übersprungen.
     Fail-Open: Exception bei einem Channel → Log + weiter.
+
+    Args:
+        projects: Für jedes Projekt werden zwei Channels erstellt
+                  (ai-review-<project> + ai-review-shadow-<project>).
+        extra_channels: Zusätzliche Einzel-Channels ohne Projekt-Präfix
+                        (z.B. "agent-stack-health"). Landen in derselben
+                        Category. Leer bei Default-Run.
 
     Returns:
         Wenn dry_run=False: {"created": int, "skipped": int, "failed": int}
@@ -174,6 +183,15 @@ def provision_guild(
         "type": CHANNEL_TYPE_TEXT,
         "parent_id": None,
     })
+
+    # Extra-Channels: ohne Projekt-Präfix, aber in derselben AI-Review Category
+    # (z.B. agent-stack-health für den Weekly-Health-Report).
+    for extra_name in (extra_channels or []):
+        desired.append({
+            "name": extra_name,
+            "type": CHANNEL_TYPE_TEXT,
+            "parent_id": None,
+        })
 
     # --- Category-ID bestimmen / anlegen ---
     # Wird nach Category-Create bekannt; Text-Channels werden darunter gehängt.
@@ -244,8 +262,15 @@ Beispiele:
     )
     parser.add_argument(
         "--projects",
-        required=True,
-        help="Komma-getrennte Projekt-Namen, z.B. ai-portal,nathan-cockpit",
+        default="",
+        help="Komma-getrennte Projekt-Namen, z.B. ai-portal,nathan-cockpit. Leer = kein Projekt-Scaffold.",
+    )
+    parser.add_argument(
+        "--extra-channel",
+        action="append",
+        dest="extra_channels",
+        default=[],
+        help="Zusätzlicher Standalone-Channel ohne Projekt-Präfix (z.B. agent-stack-health). Mehrfach nutzbar.",
     )
     parser.add_argument(
         "--dry-run",
@@ -273,8 +298,10 @@ Beispiele:
         logger.info("=== DRY-RUN MODE — keine API-Calls ===")
 
     projects = [p.strip() for p in args.projects.split(",") if p.strip()]
-    if not projects:
-        logger.error("Keine Projekte angegeben.")
+    extra_channels = [c.strip() for c in args.extra_channels if c.strip()]
+
+    if not projects and not extra_channels:
+        logger.error("Keine Projekte und keine Extra-Channels angegeben — nichts zu tun.")
         return 1
 
     try:
@@ -289,6 +316,7 @@ Beispiele:
         projects=projects,
         dry_run=args.dry_run,
         category_name=args.category,
+        extra_channels=extra_channels,
     )
 
     if args.dry_run:
