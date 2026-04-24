@@ -36,9 +36,9 @@ version: "1.0"
 # reviewers: Welche Modelle welche Stage verwendet
 # ---------------------------------------------------------------------
 reviewers:
-  codex: gpt-5                      # Stage 1 + Stage 5 (AC primary)
+  codex: gpt-5.5                    # Stage 1 + Stage 5 (AC primary)
   cursor: composer-2                # Stage 1b
-  gemini: gemini-2.5-pro            # Stage 2
+  gemini: gemini-3.1-pro-preview    # Stage 2
   claude: claude-opus-4-7           # Stage 3 + Stage 5 (AC judge)
 
 # ---------------------------------------------------------------------
@@ -73,7 +73,7 @@ stages:
   ac_validation:
     enabled: true
     blocking: true
-    judge_model: gpt-5              # Primary judge
+    judge_model: gpt-5.5            # Primary judge
     second_opinion_model: claude-opus-4-7
     min_coverage: 1.0               # 100%-AC-Coverage gefordert (0.8 = 80%)
     require_linked_issue: true      # Closes #N erforderlich
@@ -164,7 +164,7 @@ Alles andere (reviewers-defaults, consensus-thresholds, blocking=true) übernimm
 | Was | Wann | Wie |
 |---|---|---|
 | Eine Stage temporär deaktivieren | Während eines Reviewer-Ausfalls (z.B. Gemini-Outage) | `stages.security.enabled: false` + Branch-Protection anpassen |
-| Modell-Version upgraden | Neues Release von Claude / Codex / etc. | `reviewers.claude: claude-opus-4-8` (wenn verfügbar) |
+| Modell-Version upgraden | Neues Release von Claude / Codex / etc. | `reviewers.claude: claude-opus-4-8` (wenn verfügbar) <!-- pin-drift-ignore: hypothetisches Beispiel --> |
 | Threshold lockern | Zu viele False-Soft-Consensuses | `consensus.success_threshold: 7` (vorsicht!) |
 | Auto-Fix testen | Nach neuem Modell-Release | `stages.code_review.auto_fix.enabled: true` |
 | Shadow-Mode aktivieren | Vor einem Cutover | `stages.*.blocking: false` + Channel-Swap |
@@ -210,9 +210,9 @@ Output:
 # Effective config for /home/clawd/projects/ai-portal/.ai-review/config.yaml
 version: "1.0"
 reviewers:
-  codex: gpt-5
+  codex: gpt-5.5
   cursor: composer-2
-  gemini: gemini-2.5-pro
+  gemini: gemini-3.1-pro-preview
   claude: claude-opus-4-7
 stages:
   code_review:

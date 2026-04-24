@@ -118,9 +118,9 @@ Jeder Stolperstein ist einmal aufgetreten, wurde analysiert, gefixt, und hier do
 
 ### 19. Gemini CLI Flag-Order
 
-**Symptom:** `gemini -p -m gemini-2.5-pro "prompt"` → `Not enough arguments following: p`
+**Symptom:** `gemini -p -m gemini-3.1-pro-preview "prompt"` → `Not enough arguments following: p`
 **Ursache:** yargs behandelt `-p` als String-Option, `-m` wird als dessen Wert konsumiert
-**Fix:** Immer `gemini -m gemini-2.5-pro -p "prompt"` (model-Flag VOR prompt-Flag)
+**Fix:** Immer `gemini -m gemini-3.1-pro-preview -p "prompt"` (model-Flag VOR prompt-Flag)
 
 ### 20. Re-Import strippt Credentials (historisch)
 

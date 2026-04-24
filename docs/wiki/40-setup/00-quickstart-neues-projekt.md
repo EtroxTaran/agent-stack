@@ -67,17 +67,14 @@ Alle Workflows laufen mit `runs-on: [self-hosted, r2d2, ai-review]`, nutzen also
 ```yaml
 version: "1.0"
 
-# Default-Modelle — meistens OK, pro-Projekt-Override nur wenn nötig
-reviewers:
-  codex: gpt-5
-  cursor: composer-2
-  gemini: gemini-2.5-pro
-  claude: claude-opus-4-7
+# Best Practice (Phase 5): Modelle NICHT hier pinnen — die Pipeline holt sie
+# aus der Registry (MODEL_REGISTRY.env im ai-review-pipeline-Repo).
+# Nur überschreiben, wenn du absichtlich abweichen willst.
 
 stages:
   code_review:
     enabled: true
-    blocking: true       # Phase 5: Produktion, blocking. Phase 4 Shadow: false.
+    blocking: true       # Phase 5 Default. Für Shadow-Mode: false + Branch-Protection anpassen.
   cursor_review:
     enabled: true
     blocking: true
@@ -90,9 +87,8 @@ stages:
   ac_validation:
     enabled: true
     blocking: true
-    judge_model: gpt-5
-    second_opinion_model: claude-opus-4-7
     min_coverage: 1.0
+    # judge_model + second_opinion_model kommen aus Registry. Nicht pinnen.
 
 consensus:
   success_threshold: 8

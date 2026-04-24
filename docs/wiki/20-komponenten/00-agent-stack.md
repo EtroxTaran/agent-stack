@@ -171,11 +171,11 @@ Unter `templates/.ai-review/config.yaml` liegt die Template-Config, die ein neue
 
 ```yaml
 version: "1.0"
-reviewers:
-  codex: gpt-5
-  cursor: composer-2
-  gemini: gemini-2.5-pro
-  claude: claude-opus-4-7
+# Keine reviewers: Block — Modelle kommen aus Registry (MODEL_REGISTRY.env).
+# Override nur wenn absichtlich abweichend:
+# reviewers:
+#   codex: gpt-5.5
+#   gemini: gemini-3.1-pro-preview
 stages:
   code_review:
     enabled: true

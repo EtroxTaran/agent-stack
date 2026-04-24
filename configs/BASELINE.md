@@ -69,7 +69,7 @@ Die maschinenlesbaren Assertions stehen in `configs/BASELINE.assertions.json` di
 
 | Key | Soll-Wert | Warum |
 |---|---|---|
-| `model` | siehe `MODEL_REGISTRY.md` `OPENAI_MAIN` (aktuell `gpt-5.4`, künftig höher) | AGENTS.md §11; GPT-5-Familie integriert Reasoning via `model_reasoning_effort` |
+| `model` | siehe `MODEL_REGISTRY.md` `OPENAI_MAIN` (aktuell `gpt-5.5`, künftig höher) | AGENTS.md §11; GPT-5-Familie integriert Reasoning via `model_reasoning_effort` |
 | `model_reasoning_effort` | `"medium"` | Balance Latency↔Qualität; Review-Tasks brauchen kein `"high"` (enum: none/minimal/low/medium/high/xhigh) |
 | `sandbox_mode` | `"workspace-write"` | Codex darf im Projekt schreiben, nichts außerhalb (enum: read-only/workspace-write/danger-full-access) |
 | `approval_policy` | `"never"` | Rule 0 kompatibel; Sandbox-Boundary schützt (enum: untrusted/on-failure/on-request/never/object) |
@@ -99,7 +99,7 @@ Die maschinenlesbaren Assertions stehen in `configs/BASELINE.assertions.json` di
 **Alert-Logik**:
 - Registry älter als 14 Tage → `⚠ warn` (Registry veraltet, `--apply` läuft nicht)
 - Config-Wert ≠ Registry-Wert → `⚠ warn` (Modell-Drift)
-- Config ist Prefix des Registry-Werts (z.B. `gpt-5` vs. `gpt-5.3-codex`) → `⚠ warn` mit Hinweis "Alias — spezifischer Wert empfohlen"
+- Config ist Prefix des Registry-Werts (z.B. `gpt-5` vs. `gpt-5.3-codex`) → `⚠ warn` mit Hinweis "Alias — spezifischer Wert empfohlen" <!-- pin-drift-ignore: Alias-Check-Beispiel, keine echten Pins -->
 
 ---
 

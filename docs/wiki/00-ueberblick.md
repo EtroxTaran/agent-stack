@@ -83,12 +83,12 @@ Details: [`10-konzepte/10-consensus-scoring.md`](10-konzepte/10-consensus-scorin
 
 ### Phasen-Modell
 
-Die Toolchain läuft aktuell in zwei Modi parallel auf dem Zielprojekt:
+Das ai-portal läuft seit dem **Phase-5-Cutover (2026-04-24)** mit einer einzigen produktiven Pipeline:
 
-- **v1** (Legacy-Pipeline, live, blocking): Fest verdrahtet im ai-portal-Repo, Stages als einzelne YAML-Workflows. Required-Check `ai-review/consensus` blockiert Merges.
-- **v2 Shadow** (neue Pipeline, non-blocking): Nutzt die extrahierte `ai-review-pipeline` aus dem agent-stack-Ökosystem. Status-Context `ai-review-v2/consensus` — parallel, aber nicht in der Branch-Protection.
+- **Produktiv** (blocking): Die extrahierte `ai-review-pipeline` aus dem agent-stack-Ökosystem als Python-Package. Status-Context `ai-review/consensus` ist Required-Check für Auto-Merge.
+- **Historisch (Phase 4, 20.–24. April 2026)**: v1 Legacy-Pipeline (YAML-Workflows direkt im Repo) lief blocking, v2 parallel als Shadow mit Präfix `ai-review-v2/*`. Alle fünf v1-Workflows wurden im Cutover gelöscht.
 
-Der Cutover von v1 auf v2 (Phase 5) tauscht nur die Required-Checks aus und aktiviert `blocking: true` in der Config. Details: [`10-konzepte/20-shadow-vs-cutover.md`](10-konzepte/20-shadow-vs-cutover.md) und [`30-workflows/40-cutover-phase-4-zu-5.md`](30-workflows/40-cutover-phase-4-zu-5.md).
+Für künftige Projekte bleibt der Shadow-zu-Produktion-Flow die empfohlene Rollout-Strategie: [`10-konzepte/20-shadow-vs-cutover.md`](10-konzepte/20-shadow-vs-cutover.md) und das Playbook [`30-workflows/40-shadow-zu-produktion-cutover.md`](30-workflows/40-shadow-zu-produktion-cutover.md).
 
 ### Infrastruktur-Fakten
 

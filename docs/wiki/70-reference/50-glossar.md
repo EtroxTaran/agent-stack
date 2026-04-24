@@ -63,13 +63,16 @@ Aggregations-Methode, bei der jeder Stage-Score mit dessen Confidence-Wert gewic
 Commit-Message-Format `type(scope): description`. Types: feat/fix/chore/docs/refactor/test. `checkpoint:` als Safety-Ausnahme erlaubt.
 
 **Context-Name / Context-Prefix**
-Der Name eines GitHub-Commit-Status, z.B. `ai-review/consensus`. Präfix unterscheidet v1 (`ai-review/`) von v2 (`ai-review-v2/`). Siehe [`20-status-contexts.md`](20-status-contexts.md).
+Der Name eines GitHub-Commit-Status, z.B. `ai-review/consensus`. Seit Phase 5 nur noch `ai-review/*` aktiv; der Shadow-Präfix `ai-review-v2/*` ist historisch. Siehe [`20-status-contexts.md`](20-status-contexts.md).
 
 **Cursor (composer-2)**
-Cursor's Code-Review-Modell für Stage 1b.
+Cursor's Code-Review-Modell für Stage 1b. Cursor-intern, nicht in der zentralen MODEL_REGISTRY.env.
+
+**Model Registry**
+Single-Source-of-Truth für LLM-Modell-Pins: [`ai-review-pipeline/src/ai_review_pipeline/registry/MODEL_REGISTRY.env`](https://github.com/EtroxTaran/ai-review-pipeline/blob/main/src/ai_review_pipeline/registry/MODEL_REGISTRY.env). Wöchentlicher Drift-Check montags 08:00 UTC.
 
 **Cutover**
-Der Wechsel von Shadow- zur Produktions-Pipeline (Phase 4 → 5). Siehe [`30-workflows/40-cutover-phase-4-zu-5.md`](../30-workflows/40-cutover-phase-4-zu-5.md).
+Der Wechsel von Shadow- zur Produktions-Pipeline. Für ai-portal am 2026-04-24 abgeschlossen; Playbook für künftige Projekte: [`30-workflows/40-shadow-zu-produktion-cutover.md`](../30-workflows/40-shadow-zu-produktion-cutover.md).
 
 ## D
 
@@ -163,7 +166,7 @@ Unterordner in agent-stack mit Operations-Infrastructure (n8n-Workflows, Compose
 GitHub-Credential für API-Calls. `ghp_…` = classic, `github_pat_…` = fine-grained.
 
 **Phase 4 / Phase 5**
-Shadow-Modus / Post-Cutover. Siehe [Shadow-vs-Cutover](../10-konzepte/20-shadow-vs-cutover.md).
+Shadow-Modus (Phase 4, abgeschlossen für ai-portal am 2026-04-24) vs. produktive Pipeline (Phase 5, aktuell). Siehe [Shadow-vs-Cutover](../10-konzepte/20-shadow-vs-cutover.md).
 
 **pip install git+URL**
 Installation eines Python-Packages direkt aus einem Git-Repo. Vorsicht bei gleichbleibender Version — siehe [`50-runbooks/30-pip-install-bricht.md`](../50-runbooks/30-pip-install-bricht.md).
@@ -209,7 +212,7 @@ Kurzform für den `project-setup-check.sh`-SessionStart-Hook, der unkonfiguriert
 SAST-Tool mit Rule-basiertem Code-Scanning. Teil der Stage 2.
 
 **Shadow-Mode**
-Phase 4 der Pipeline: v2 läuft parallel, aber nicht-blockierend. Siehe [`10-konzepte/20-shadow-vs-cutover.md`](../10-konzepte/20-shadow-vs-cutover.md).
+Phase 4 der Pipeline: v2 läuft parallel, aber nicht-blockierend. Für ai-portal historisch (20.–24. April 2026); als Strategie für künftige Projekte weiterhin gültig. Siehe [`10-konzepte/20-shadow-vs-cutover.md`](../10-konzepte/20-shadow-vs-cutover.md).
 
 **Skill (Agent-Skill)**
 Spezialisierte Prompt-Definition in `skills/<name>/SKILL.md`. Agentskills.io-Standard. Siehe [`20-komponenten/70-skills-mcp.md`](../20-komponenten/70-skills-mcp.md).

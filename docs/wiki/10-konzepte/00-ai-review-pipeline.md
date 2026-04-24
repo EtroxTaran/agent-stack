@@ -63,23 +63,22 @@ Die Prompts sind **Package-Data** — sie müssen im gebauten Wheel enthalten se
 
 ### Modell-Defaults und Override
 
-Die Standard-Modelle sind in [`CLAUDE.md §8 Review-Charter`](https://github.com/EtroxTaran/agent-stack/blob/main/AGENTS.md) verankert:
+Die Standard-Modelle kommen aus der [`MODEL_REGISTRY.env`](https://github.com/EtroxTaran/ai-review-pipeline/blob/main/src/ai_review_pipeline/registry/MODEL_REGISTRY.env) (Single-Source-of-Truth, wöchentlicher Drift-Check). Die in [`AGENTS.md §8 Review-Charter`](https://github.com/EtroxTaran/agent-stack/blob/main/AGENTS.md) gelisteten Pins spiegeln den Registry-Stand:
 
 ```
-codex: gpt-5.x
-cursor: composer-2
-gemini: gemini-2.5-pro
-claude: claude-opus-4-7
+codex: gpt-5.5              # Registry-Key: OPENAI_MAIN
+cursor: composer-2          # Cursor-intern, nicht im Registry
+gemini: gemini-3.1-pro-preview  # Registry-Key: GEMINI_PRO (Preview bevorzugt)
+claude: claude-opus-4-7     # Registry-Key: CLAUDE_OPUS
 ```
 
-Pro Projekt überschreibbar via `.ai-review/config.yaml`:
+Pro-Projekt-Override nur wenn absichtlich abweichend — ansonsten leer lassen und Registry ziehen lassen:
 
 ```yaml
+# Absichtlicher Override für ein Experiment:
 reviewers:
-  codex: gpt-5
-  cursor: composer-2
-  gemini: gemini-2.5-pro
-  claude: claude-opus-4-7
+  codex: gpt-5.5
+  gemini: gemini-3.1-pro-preview
 ```
 
 Details: [`40-setup/20-ai-review-config-schema.md`](../40-setup/20-ai-review-config-schema.md).

@@ -19,8 +19,8 @@ Das sind **7 Channel-IDs insgesamt**. Die Guild hat zusätzlich typische Kanäle
 ## Namens-Konvention
 
 ```
-#ai-review-<repo-name>               → regulärer Channel
-#ai-review-shadow-<repo-name>        → Shadow-Channel (Phase 4)
+#ai-review-<repo-name>               → regulärer Channel (Phase 5 Produktion)
+#ai-review-shadow-<repo-name>        → Shadow-Channel (Phase 4, während Validierung)
 ```
 
 Der `<repo-name>` ist das "Human-readable" Namens-Suffix, nicht zwingend gleich dem GitHub-Repo-Namen. In der Praxis matchen sie aber: `ai-portal` → `#ai-review-ai-portal`.
@@ -122,7 +122,7 @@ $EDITOR ~/.config/ai-workflows/env
 bash ops/scripts/restart-n8n-with-ai-review.sh
 ```
 
-## Beim Cutover Phase 4 → 5
+## Beim Cutover
 
 Im Cutover wird pro Projekt:
 
@@ -130,7 +130,7 @@ Im Cutover wird pro Projekt:
 - In `.ai-review/config.yaml`: `channel_id` wird von `$DISCORD_CHANNEL_<NAME>_SHADOW` auf `$DISCORD_CHANNEL_<NAME>` umgestellt
 - Shadow-Channel wird nach Cutover zum "Training-Channel" für neue Features
 
-Details: [`30-workflows/40-cutover-phase-4-zu-5.md`](../30-workflows/40-cutover-phase-4-zu-5.md).
+Für ai-portal am 2026-04-24 abgeschlossen. Playbook für künftige Projekte: [`30-workflows/40-shadow-zu-produktion-cutover.md`](../30-workflows/40-shadow-zu-produktion-cutover.md).
 
 ## Discord-Permissions pro Channel
 

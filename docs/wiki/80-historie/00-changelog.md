@@ -2,6 +2,20 @@
 
 > **TL;DR:** Diese Seite listet die größeren Entwicklungsschritte der AI-Review-Toolchain in umgekehrter chronologischer Reihenfolge. Für Detail-Analyse einzelner Entscheidungen siehe [ADRs-Index](20-adrs-index.md); für die sich-daraus-ergebenden Lehren siehe [Lessons Learned](10-lessons-learned.md). Dieser Changelog fokussiert auf: Was wurde gebaut, wann, warum grob.
 
+## 2026-04-24 (abends) — Docs-Drift-Bereinigung + Drift-Guard
+
+**Was:** Nach Phase-5-Cutover und Registry-Migration waren Docs/Templates an mehreren Stellen stale. Bereinigt:
+- Model-Pins in 10 Files auf Registry-SoT angeglichen (`gpt-5.5`, `gemini-3.1-pro-preview`, `claude-opus-4-7`).
+- `templates/ai-review-config.yaml` auf kanonisches Schema (`reviewers.*`) migriert und Pin-frei gelassen — Modelle kommen aus Registry.
+- `ai-portal-integration.md` komplett umgeschrieben auf aktuellen Phase-5-Produktionszustand (einzige Pipeline, `ai-review/consensus` required, Legacy v1 als historisch markiert).
+- Cutover-Doc umbenannt (`40-cutover-phase-4-zu-5.md` → `40-shadow-zu-produktion-cutover.md`) und als generisches Playbook positioniert. Alle 10 Inbound-Links aktualisiert.
+- Status von Phase-4-Referenzen in 9 weiteren Wiki-Seiten von "aktuell" auf "historisch bis 2026-04-24" umgestellt.
+- Neuer Drift-Guard `scripts/check-docs-model-pins.sh` + `docs-pin-drift`-Job in `.github/workflows/model-registry-drift-check.yml` (läuft auf jedem Docs-PR + wöchentlich).
+
+**Warum:** Neue User hätten veraltete Model-Pins (`gpt-5`, `gemini-2.5-pro`) via `ai-init-project.sh` in neue Projekte kopiert. Phase-4-Terminologie an mehreren Stellen passte nicht mehr zur Realität. <!-- pin-drift-ignore: Referenz auf abgelöste Modelle im Changelog -->
+
+**Referenz:** Branch `docs/post-phase5-cutover-and-registry-drift-cleanup`.
+
 ## 2026-04-24 — Phase-5-Cutover im ai-portal (PR#44)
 
 **Was:** v2 ai-review-pipeline wird die **einzige** Review-Pipeline im ai-portal. Shadow-Modus beendet, 5 v1-Legacy-Workflows gelöscht.

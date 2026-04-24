@@ -20,12 +20,35 @@ on:
         description: "Nur Report, kein PR"
         required: false
         default: "false"
+  pull_request:
+    # docs-pin-drift läuft auf jedem PR, der Docs/Templates/Configs
+    # anfässt — verhindert, dass veraltete Pins in main landen.
+    paths:
+      - "docs/wiki/**"
+      - "templates/**"
+      - "configs/BASELINE.md"
+      - "AGENTS.md"
+      - "scripts/check-docs-model-pins.sh"
+      - ".github/workflows/model-registry-drift-check.yml"
 
 permissions:
   contents: read
 
 jobs:
+  docs-pin-drift:
+    # Prüft Docs + Templates + BASELINE + AGENTS.md auf Model-Pins, die
+    # nicht im Registry-SoT stehen. Läuft auf PRs (Gate) + wöchentlich.
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run docs/templates pin-drift check
+        run: bash scripts/check-docs-model-pins.sh
+
   drift-check:
+    # Der Registry-seitige Drift-Check läuft nur wöchentlich oder manuell —
+    # PR-Events triggern ihn nicht (braucht Cross-Repo-PAT + Vendor-APIs).
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

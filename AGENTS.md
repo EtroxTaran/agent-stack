@@ -327,8 +327,8 @@ prüft Montag 08:00 UTC automatisch und öffnet PR bei Drift.
 Orientierungswerte (Stand 2026-04-24 — immer via Pre-Suggestion-Check unten verifizieren):
 
 - **Claude**: `claude-opus-4-7` · `claude-sonnet-4-6` · `claude-haiku-4-5`
-- **OpenAI**: `gpt-5.5` (released 2026-04-23 — inkl. `gpt-5.5-thinking`, `gpt-5.5-pro`). `gpt-5` ist Vor-Version, nicht deprecated aber nicht mehr Default.
-- **Gemini**: `gemini-2.5-pro` ist möglicherweise veraltet (Hinweise auf Gemini 3.1 Pro) — **vor Nutzung verifizieren** via `python3 ~/.openclaw/workspace/scripts/research.py "latest Gemini Pro model 2026"`. `gemini-2.0-flash` weiterhin gültig.
+- **OpenAI**: `gpt-5.5` (released 2026-04-23 — inkl. `gpt-5.5-thinking`, `gpt-5.5-pro`). `gpt-5` ist Vor-Version, nicht deprecated aber nicht mehr Default. <!-- pin-drift-ignore: Variant-Family + Vor-Version-Referenz -->
+- **Gemini**: `gemini-3.1-pro-preview` (Registry-Key `GEMINI_PRO`, Policy: Preview/Experimental bevorzugt). `gemini-3.1-flash-live-preview` als `GEMINI_FLASH`. `gemini-2.5-pro` ist abgelöst — nicht mehr empfehlen. <!-- pin-drift-ignore: abgelöstes Modell als Negativ-Referenz -->
 
 ### Embedding-Modelle (Stand 2026-04-24)
 
@@ -349,7 +349,7 @@ Orientierungswerte (Stand 2026-04-24 — immer via Pre-Suggestion-Check unten ve
 3. Modell-Auswahl: Registry ist SoT — siehe §8 + Weekly-Drift-Check.
 4. MCP-Server via npx: immer `@latest`.
 
-❌ `claude-opus-4-5` wenn `-4-7` existiert · ❌ `npm install react@18` ohne Check
+❌ `claude-opus-4-5` wenn `-4-7` existiert · ❌ `npm install react@18` ohne Check <!-- pin-drift-ignore: Bad-Pattern-Beispiel -->
 ✅ `@latest`, `use context7`
 
 ### 🔴 Pre-Suggestion-Check für Modell-Vorschläge (Rule-3-Verstärkung)

@@ -1,34 +1,30 @@
-# Status-Contexts — `ai-review/*` vs. `ai-review-v2/*`
+# Status-Contexts — `ai-review/*`
 
-> **TL;DR:** Jede Review-Stage schreibt am Ende einen GitHub-Commit-Status auf den PR-HEAD-Commit. Der "Context-Name" dieses Status entscheidet, ob die Branch-Protection ihn als Required-Check behandelt. Aktuell laufen zwei parallele Präfix-Räume: `ai-review/*` ist die Legacy-v1-Pipeline (required), `ai-review-v2/*` ist die neue Shadow-Pipeline (non-required). Diese Seite zeigt die vollständige Matrix und was beim Cutover zu Phase 5 mit den Namen passiert.
+> **TL;DR:** Jede Review-Stage schreibt am Ende einen GitHub-Commit-Status auf den PR-HEAD-Commit. Der "Context-Name" dieses Status entscheidet, ob die Branch-Protection ihn als Required-Check behandelt. Seit dem Phase-5-Cutover (ai-portal, 2026-04-24) gibt es nur noch einen Präfix-Raum: `ai-review/*`. Der historische `ai-review-v2/*`-Shadow-Präfix existiert nicht mehr.
 
 ## Kontext-Matrix
 
 ```mermaid
 graph LR
-    subgraph "Phase 4 (aktuell)"
-        V1[ai-review/*<br/>v1 Legacy]
-        V2[ai-review-v2/*<br/>v2 Shadow]
+    subgraph "Phase 5 (aktuell)"
+        V[ai-review/*]
     end
 
     subgraph "Branch-Protection"
         REQ[Required Checks]
     end
 
-    V1 -->|in Protection| REQ
-    V2 -.->|NICHT in Protection| REQ
+    V -->|ai-review/consensus required| REQ
 
-    classDef current fill:#fb8c00,color:#fff
-    classDef shadow fill:#757575,color:#fff
+    classDef current fill:#43a047,color:#fff
     classDef protection fill:#e53935,color:#fff
-    class V1 current
-    class V2 shadow
+    class V current
     class REQ protection
 ```
 
 ## Die Context-Namen im Detail
 
-### v1 Legacy-Pipeline (required)
+### `ai-review/*` — produktive Pipeline
 
 | Context | Stage | Status-Werte |
 |---|---|---|
@@ -40,21 +36,13 @@ graph LR
 | `ai-review/ac-validation` | Stage 5 Codex+Claude | success, failure (coverage < min), pending |
 | `ai-review/consensus` | Aggregation | success (avg≥8), pending (soft 5-7 oder missing), failure (<5) |
 
-### v2 Shadow-Pipeline (non-required)
+### Historisch: `ai-review-v2/*` (Shadow-Präfix, bis 2026-04-24)
 
-| Context | Stage | Status-Werte |
-|---|---|---|
-| `ai-review-v2/scope-check` | Pre-Flight | (wie v1) |
-| `ai-review-v2/code` | Stage 1 | (wie v1) |
-| `ai-review-v2/code-cursor` | Stage 1b | (wie v1) |
-| `ai-review-v2/security` | Stage 2 | (wie v1) |
-| `ai-review-v2/design` | Stage 3 | (wie v1) |
-| `ai-review-v2/ac-validation` | Stage 5 | (wie v1) |
-| `ai-review-v2/consensus` | Aggregation | (wie v1) |
+Während der Phase-4-Shadow-Validierung (20.–24. April 2026) lief die damals neue v2-Pipeline unter einem eigenen Präfix `ai-review-v2/*`, parallel zur bestehenden v1-Legacy-Pipeline. Im Cutover wurde der Shadow-Präfix entfernt und die Stages schreiben seither direkt `ai-review/*`. Der Shadow-Präfix ist nur noch für Archiv-Analysen alter PRs relevant.
 
 ## Branch-Protection-Konfiguration
 
-Die Protection auf `ai-portal/main` listet folgende Required-Checks (Stand Phase 4):
+Die Protection auf `ai-portal/main` listet folgende Required-Checks (Stand Phase 5):
 
 ```
 checks                                                         [CI]
@@ -64,44 +52,23 @@ Secret Scan (gitleaks)                                         [Security]
 SAST (semgrep)                                                 [Security]
 Container CVE Scan (trivy) (portal-api, ., apps/portal-api/Dockerfile)
 Container CVE Scan (trivy) (portal-shell, ., apps/portal-shell/Dockerfile)
-ai-review/consensus                                            [v1 Aggregation]
+ai-review/consensus                                            [AI-Review Aggregation]
 ```
 
 **Kritisch:** Nur `ai-review/consensus` ist aus der Pipeline required, nicht die einzelnen Stages. Die Stages fließen in die Aggregation ein, der Branch-Protection-Gate ist der Consensus-Status.
 
-`ai-review-v2/*` ist **nirgends** in der Protection-Liste — das ist das Kern-Merkmal des Shadow-Modus.
+## Status-Context-Präfix
 
-## Welches Präfix welchem Stage-Call?
-
-Die Pipeline nutzt den `--status-context-prefix`-Flag zum Steuern:
+Die Pipeline nutzt `ai-review/*` als Default-Präfix. Der `--status-context-prefix`-Flag ist weiterhin implementiert, wird aber nicht genutzt — der Shadow-Use-Case fiel mit dem Phase-5-Cutover weg. Er bleibt nutzbar für künftige Shadow-Deployments in anderen Projekten:
 
 ```bash
-# v1 Legacy (default):
+# Produktiv (default):
 ai-review stage code-review --pr 42
 # schreibt: ai-review/code = success
 
-# v2 Shadow:
+# Zukünftiger Shadow-Run in einem neuen Projekt:
 ai-review stage code-review --pr 42 --status-context-prefix ai-review-v2
 # schreibt: ai-review-v2/code = success
-```
-
-Im Workflow-YAML des Shadow-Runs:
-
-```yaml
-- run: |
-    ai-review stage code-review \
-      --pr ${{ github.event.pull_request.number }} \
-      --status-context-prefix ai-review-v2
-```
-
-Für Consensus zusätzlich `--status-context`:
-
-```bash
-ai-review consensus \
-  --sha $SHA \
-  --pr 42 \
-  --status-context ai-review-v2/consensus \
-  --status-context-prefix ai-review-v2
 ```
 
 ## Status-Description-Konventionen
@@ -116,7 +83,7 @@ Jeder Context hat eine kurze Description (max 140 chars), die im GitHub-UI als T
 - `"skipped: rate-limit — consensus uses other stages"` — Cursor-Sentinel
 
 **Failure-Descriptions:**
-- `"Gemini 2.5 Pro flagged 1 critical finding"`
+- `"Gemini 3.1 Pro flagged 1 critical finding"`
 - `"AC-Validation failed: 0/3 AC mapped to tests"`
 - `"consensus below threshold: avg 4.2"`
 
@@ -130,7 +97,7 @@ Die Descriptions werden im [`ai-review-pipeline/src/.../consensus.py`](https://g
 
 Status-API ist **write-once-by-context**: Ein neuer POST überschreibt den alten. Die Stages schreiben ihr eigenes Präfix, der Consensus-Job liest alle passenden Präfixe und schreibt sein eigenes.
 
-Timeline einer erfolgreichen v1-Pipeline:
+Timeline einer erfolgreichen Pipeline:
 
 ```
 t=00s  PR opened → 5 Stage-Jobs + 1 Consensus-Job queued
@@ -145,25 +112,21 @@ t=50s  Consensus → polls alle ai-review/*, aggregiert, writes ai-review/consen
 
 Ab Sekunde 50 ist die Pipeline grün, Branch-Protection erfüllt.
 
-## Beim Cutover-Swap
+## Cutover-Historie
 
-Im Cutover Phase 4 → 5 werden die Kontext-Namen umgestellt:
+Im Phase-5-Cutover (ai-portal, 2026-04-24) wurden die Kontext-Namen umgestellt:
 
 ```
-Phase 4:
+Phase 4 (Shadow, 20.–24. April 2026):
   v1 required:     ai-review/consensus
   v2 non-required: ai-review-v2/consensus
 
-Phase 5 (nach Cutover):
-  v2 required:     ai-review/consensus    ← umgestellt!
-  v1 gelöscht:     keine ai-review-v2/* mehr
+Phase 5 (ab 2026-04-24):
+  required:        ai-review/consensus    ← v2 nutzt jetzt den Default-Präfix
+  gelöscht:        alle ai-review-v2/*    ← Shadow-Präfix entfernt
 ```
 
-Die alten `ai-review-v2/*` Status-Contexts existieren nach Cutover nicht mehr, weil das Präfix umbenannt wurde. Die neue (ehemals v2) Pipeline schreibt jetzt `ai-review/*`.
-
-**Potential Pitfall:** Wenn noch offene PRs bestehen beim Cutover, haben sie alte v2-Status-Contexts, die plötzlich "stale" wirken. Option: Cutover nur bei leerer PR-Queue, oder manueller Status-Rewrite auf offenen PRs.
-
-Details: [`30-workflows/40-cutover-phase-4-zu-5.md`](../30-workflows/40-cutover-phase-4-zu-5.md).
+**Für künftige Cutover in anderen Projekten:** Beim Swap PR-Queue möglichst leer halten, sonst haben offene PRs alte Shadow-Contexts, die plötzlich "stale" wirken. Playbook: [`30-workflows/40-shadow-zu-produktion-cutover.md`](../30-workflows/40-shadow-zu-produktion-cutover.md).
 
 ## Status-Context abfragen
 
@@ -183,7 +146,7 @@ GitHub PR-Seite → "Checks"-Tab → jeder Context hat Status + Description sich
 
 - [Consensus-Scoring](../10-konzepte/10-consensus-scoring.md) — wie die Aggregation entscheidet
 - [Shadow-Mode vs. Cutover](../10-konzepte/20-shadow-vs-cutover.md) — Phasenmodell
-- [Cutover Phase 4 → 5](../30-workflows/40-cutover-phase-4-zu-5.md) — Migration
+- [Shadow-zu-Produktion Cutover](../30-workflows/40-shadow-zu-produktion-cutover.md) — Migration
 - [Consensus-stuck-pending Runbook](../50-runbooks/40-consensus-stuck-pending.md)
 
 ## Quelle der Wahrheit (SoT)

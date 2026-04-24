@@ -67,10 +67,12 @@ Pro Projekt-Config, nicht global:
 
 | Key | Typ | Zweck | Default |
 |---|---|---|---|
-| `reviewers.codex` | str | Codex-Modell-ID | `gpt-5` |
+| `reviewers.codex` | str | Codex-Modell-ID (Override; Default aus Registry `OPENAI_MAIN`) | `gpt-5.5` |
 | `reviewers.cursor` | str | Cursor-Modell-ID | `composer-2` |
-| `reviewers.gemini` | str | Gemini-Modell-ID | `gemini-2.5-pro` |
-| `reviewers.claude` | str | Claude-Modell-ID | `claude-opus-4-7` |
+| `reviewers.gemini` | str | Gemini-Modell-ID (Override; Default aus Registry `GEMINI_PRO`) | `gemini-3.1-pro-preview` |
+| `reviewers.claude` | str | Claude-Modell-ID (Override; Default aus Registry `CLAUDE_OPUS`) | `claude-opus-4-7` |
+
+> **Best Practice (Phase 5):** Das `reviewers:`-Block pro Projekt ist optional und wird selten gebraucht — die Pipeline holt die Pins aus der [MODEL_REGISTRY.env](https://github.com/EtroxTaran/ai-review-pipeline/blob/main/src/ai_review_pipeline/registry/MODEL_REGISTRY.env). Nur setzen, wenn du absichtlich von der Registry abweichen willst (Experimente, Cost-Optimierung). Per-Run-Override via `AI_REVIEW_MODEL_<ROLE>` Env-Var.
 | `stages.<name>.enabled` | bool | Stage überhaupt aktiv? | `true` |
 | `stages.<name>.blocking` | bool | Fail-Closed bei Ausfall? | `true` |
 

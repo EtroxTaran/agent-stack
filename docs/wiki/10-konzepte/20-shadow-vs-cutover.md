@@ -1,27 +1,27 @@
 # Shadow-Mode vs. Cutover — Warum zwei Pipelines parallel laufen
 
-> **TL;DR:** Auf dem ai-portal-Repo laufen aktuell zwei unabhängige Review-Pipelines gleichzeitig. Die alte (v1) wurde vor der Extraction direkt im Repo entwickelt und ist seit langem eingespielt; sie blockiert Merges wenn Reviews fehlschlagen. Die neue (v2) nutzt die extrahierte Pipeline aus dem agent-stack-Ökosystem und läuft bewusst nicht-blockierend. Dieser Shadow-Modus erlaubt es, die neue Pipeline unter Real-Bedingungen zu validieren, ohne Entwicklungsarbeit zu riskieren. Der Cutover (Phase 5) tauscht v1 gegen v2 aus, sobald v2 bewiesen hat, dass sie zuverlässig das richtige Urteil liefert.
+> **TL;DR:** Für ai-portal ist dieser Modus seit dem Cutover am **2026-04-24 Geschichte** — nur noch die produktive Pipeline (Phase 5, blocking) läuft. Während der Validierungsphase (20.–24. April 2026) liefen zwei unabhängige Review-Pipelines parallel: die alte (v1, direkt im Repo entwickelt, blockierend) und die neue (v2, extrahiertes Package, bewusst nicht-blockierend). Der Shadow-Modus erlaubt es, eine neue Pipeline unter Real-Bedingungen zu validieren, ohne Entwicklungsarbeit zu riskieren. Für künftige Projekte bleibt der hier dokumentierte Ablauf die empfohlene Rollout-Strategie.
 
 ## Wie es funktioniert
 
 ```mermaid
 graph LR
-    subgraph "Phase 4 — aktuell"
+    subgraph "Phase 4 — Shadow-Validierung"
         PR1[Pull-Request] --> V1[v1 Legacy<br/>blocking]
         PR1 --> V2S[v2 Shadow<br/>non-blocking]
         V1 -->|required check| M1[Auto-Merge]
         V2S -.->|nur informativ| M1
     end
 
-    subgraph "Phase 5 — Cutover"
-        PR2[Pull-Request] --> V2B[v2 Main<br/>blocking]
+    subgraph "Phase 5 — nach Cutover (aktuell für ai-portal)"
+        PR2[Pull-Request] --> V2B[v2 Produktiv<br/>blocking]
         V2B -->|required check| M2[Auto-Merge]
     end
 
-    classDef current fill:#fb8c00,color:#fff
-    classDef future fill:#43a047,color:#fff
-    class V1,V2S current
-    class V2B future
+    classDef shadow fill:#fb8c00,color:#fff
+    classDef active fill:#43a047,color:#fff
+    class V1,V2S shadow
+    class V2B active
 ```
 
 Ein Shadow-Modus ist ein klassisches Deployment-Pattern für risiko-behaftete Systemwechsel: Das neue System bekommt echte Produktionslast, aber seine Entscheidungen haben noch keine Konsequenzen. Man beobachtet, ob es dieselben Urteile fällt wie das alte System. Bei Abweichungen untersucht man, welches System "richtig" lag. Erst wenn die neue Pipeline über mehrere Wochen konsistent korrekt urteilt, dreht man den Schalter um.
@@ -67,7 +67,7 @@ Der Wechsel ist eine Sequenz aus fünf Änderungen, die in dieser Reihenfolge er
 4. **Branch-Protection umstellen:** `ai-review/consensus` aus Required Checks entfernen, `ai-review-v2/consensus` hinzufügen. Das ist der riskanteste Schritt — einmal gemacht, blockiert nur noch v2.
 5. **v1 abschalten:** Die YAML-Workflows in `ai-portal/.github/workflows/ai-code-review.yml`, `ai-security-review.yml`, `ai-review-consensus.yml` etc. löschen oder auf `if: false` setzen.
 
-Schritt-für-Schritt-Anleitung: [`30-workflows/40-cutover-phase-4-zu-5.md`](../30-workflows/40-cutover-phase-4-zu-5.md).
+Schritt-für-Schritt-Anleitung: [`30-workflows/40-shadow-zu-produktion-cutover.md`](../30-workflows/40-shadow-zu-produktion-cutover.md).
 
 ### Rollback-Pfad
 
@@ -85,7 +85,7 @@ Wenn nach Schritt 4 herauskommt, dass v2 nicht zuverlässig ist: Branch-Protecti
 - [AI-Review-Pipeline](00-ai-review-pipeline.md) — was die Stages prüfen
 - [Consensus-Scoring](10-consensus-scoring.md) — wie Urteile gefällt werden
 - [ai-portal Integration](../20-komponenten/20-ai-portal-integration.md) — wo die v1 und v2 Workflows im Repo liegen
-- [Cutover Phase 4 → 5](../30-workflows/40-cutover-phase-4-zu-5.md) — der Migrations-Workflow
+- [Shadow-zu-Produktion Cutover](../30-workflows/40-shadow-zu-produktion-cutover.md) — der Migrations-Workflow
 
 ## Quelle der Wahrheit (SoT)
 
