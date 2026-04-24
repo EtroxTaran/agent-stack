@@ -169,6 +169,95 @@ gh secret set ANTHROPIC_API_KEY --repo EtroxTaran/ai-review-pipeline --body "$NE
 
 Alt-Key bei Anthropic im Dashboard revoken. Keine Container-Restarts nötig — der nächste Workflow-Run nutzt den neuen.
 
+### 6. OpenAI API-Key
+
+Der OpenAI-API-Key treibt Codex als Stage-1 + Stage-5-AC-Primary-Reviewer. Als GitHub-Secret, nicht in lokaler env:
+
+```bash
+gh secret set OPENAI_API_KEY --repo EtroxTaran/ai-portal --body "$NEW_KEY"
+gh secret set OPENAI_API_KEY --repo EtroxTaran/ai-review-pipeline --body "$NEW_KEY"
+```
+
+**Neu generieren:**
+
+1. [platform.openai.com → API keys](https://platform.openai.com/api-keys)
+2. "+ Create new secret key", descriptive Name (z.B. "agent-stack-review-2026-04")
+3. Permissions: restrict to `model.request` (Minimum für Chat-Completions)
+4. Key einmalig kopieren (wird danach nie wieder angezeigt)
+
+**Alt-Key revoken** im Dashboard nachdem der neue in allen Secrets ist und ein Workflow erfolgreich durchgelaufen ist. Keine Container-Restarts nötig.
+
+**Verify:**
+
+```bash
+gh workflow run ai-review.yml --repo EtroxTaran/ai-portal
+# Warten auf ai-review/code-Status auf einem Test-PR → success
+```
+
+### 7. Gemini API-Key
+
+Gemini treibt die Security-Stage (Stage 2). Als GitHub-Secret:
+
+```bash
+gh secret set GEMINI_API_KEY --repo EtroxTaran/ai-portal --body "$NEW_KEY"
+gh secret set GEMINI_API_KEY --repo EtroxTaran/ai-review-pipeline --body "$NEW_KEY"
+```
+
+**Neu generieren:**
+
+1. [aistudio.google.com → Get API key](https://aistudio.google.com/app/apikey)
+2. "Create API key in new project" oder auf bestehendem Project
+3. Key kopieren (zukünftig wieder abrufbar, aber besser behandeln wie Single-Use)
+
+**Alt-Key revoken:** in AI-Studio Liste → "Delete".
+
+**Verify:**
+
+```bash
+gh workflow run ai-review.yml --repo EtroxTaran/ai-portal
+# Warten auf ai-review/security-Status → success (nutzt Gemini)
+```
+
+### 8. Tailscale OAuth-Credentials
+
+Der Tailscale-Funnel + Ephemeral-Runner-OIDC brauchen OAuth-Client-ID + Secret. Zwei Secrets:
+
+```bash
+# Nur ai-portal (deploy.yml SSH-Tunnel zu r2d2 via Tailscale)
+gh secret set TAILSCALE_OAUTH_CLIENT --repo EtroxTaran/ai-portal --body "$CLIENT_ID"
+gh secret set TAILSCALE_OAUTH_SECRET --repo EtroxTaran/ai-portal --body "$CLIENT_SECRET"
+```
+
+**Neu generieren:**
+
+1. [login.tailscale.com → Settings → OAuth clients](https://login.tailscale.com/admin/settings/oauth)
+2. "Generate OAuth client", Scopes nach Bedarf:
+   - `devices:core:read` — für Device-Listing (runner-config)
+   - `auth_keys:core:write` — für Auth-Key-Erstellung im Deploy
+3. Tags: `tag:ci` (für Runner-Restriction)
+4. Client-ID + Secret kopieren (Secret wird nur einmal angezeigt)
+
+**Alt-Credential revoken:** in Tailscale-Console → Delete OAuth-Client.
+
+**Verify:**
+
+```bash
+# Trigger eines deploy.yml Test-Runs
+gh workflow run deploy.yml --repo EtroxTaran/ai-portal -f dry_run=true
+# Im Workflow-Log: "Tailscale up" step → success
+```
+
+## Automatisches Monitoring
+
+Seit `agent-stack#24` läuft monatlich der [`secret-rotation-check.yml`](https://github.com/EtroxTaran/agent-stack/blob/main/.github/workflows/secret-rotation-check.yml) Workflow (1. des Monats 08:00 UTC). Er scannt alle oben genannten Secrets in agent-stack, ai-portal, ai-review-pipeline und öffnet automatisch Rotation-Issues für Secrets älter als 90 Tage.
+
+Jedes auto-generierte Issue verweist per Anchor auf die passende Sektion dieses Runbooks (siehe `RUNBOOK_ANCHORS` in [`scripts/secret-age-check.py`](https://github.com/EtroxTaran/agent-stack/blob/main/scripts/secret-age-check.py)).
+
+Manueller Trigger + Dry-Run:
+```bash
+gh workflow run secret-rotation-check.yml --repo EtroxTaran/agent-stack -f dry_run=true
+```
+
 ## Downtime-Fenster
 
 Während eines Container-Restart (via `restart-n8n-with-ai-review.sh`) ist n8n ~15–30 Sekunden unavailable. In dieser Zeit:
