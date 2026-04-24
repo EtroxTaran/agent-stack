@@ -65,4 +65,8 @@ else
     done
 fi
 
-exit $([[ $MISSING_COUNT -eq 0 ]] && echo 0 || echo 1)
+if [[ $MISSING_COUNT -eq 0 ]]; then
+    exit 0
+else
+    exit 1
+fi

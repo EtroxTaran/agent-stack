@@ -66,7 +66,7 @@ _before_version() {
 
 # ---- Update-Funktionen (jede trappt eigene Fehler, läuft weiter) ----
 declare -A RESULTS     # RESULTS[cli]=ok|failed|skipped
-declare -A NEW_VERSION
+# NEW_VERSION wurde nie benutzt — shellcheck SC2034 entfernt
 
 _run_update() {
     local cli="$1"
