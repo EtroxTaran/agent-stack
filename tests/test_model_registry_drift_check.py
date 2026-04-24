@@ -139,18 +139,33 @@ class GeminiFetcherTests(unittest.TestCase):
 
 
 class OpenAIFetcherTests(unittest.TestCase):
-    def test_picks_latest_codex_skipping_mini_preview(self) -> None:
+    def test_picks_latest_gpt5_main_skipping_codex_mini_preview(self) -> None:
+        # Policy-Wechsel 2026-04: OPENAI_MAIN bevorzugt generische gpt-5.X
+        # (nicht mehr -codex-Varianten). Codex-CLI nutzt das generische Modell.
         fake_response = {
             "data": [
-                {"id": "gpt-5.3-codex", "created": 1714000000},
-                {"id": "gpt-5.3-codex-mini", "created": 1714000000},
-                {"id": "gpt-5.2-codex", "created": 1712000000},
-                {"id": "gpt-5.3", "created": 1714000000},  # not codex
+                {"id": "gpt-5.5", "created": 1715000000},           # ← neuestes Main
+                {"id": "gpt-5.5-codex", "created": 1715000000},     # skip (legacy -codex)
+                {"id": "gpt-5.5-mini", "created": 1715000000},      # skip
+                {"id": "gpt-5.3", "created": 1714000000},
+                {"id": "gpt-4o", "created": 1710000000},            # skip (not gpt-5)
             ]
         }
         with patch.object(drift_check, "_http_json", return_value=fake_response):
             result = drift_check.fetch_openai_models("fake-key")
-        self.assertEqual(result["OPENAI_CODING"], "gpt-5.3-codex")
+        self.assertEqual(result["OPENAI_MAIN"], "gpt-5.5")
+
+    def test_falls_back_to_codex_variant_if_no_clean_gpt5(self) -> None:
+        # Wenn OpenAI mal nur -codex/-mini-Varianten exposed, trotzdem was zurückgeben
+        fake_response = {
+            "data": [
+                {"id": "gpt-5.3-codex", "created": 1714000000},
+                {"id": "gpt-5.3-codex-mini", "created": 1714000000},
+            ]
+        }
+        with patch.object(drift_check, "_http_json", return_value=fake_response):
+            result = drift_check.fetch_openai_models("fake-key")
+        self.assertEqual(result["OPENAI_MAIN"], "gpt-5.3-codex")
 
 
 class NpmCliPinsFetcherTests(unittest.TestCase):

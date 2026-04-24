@@ -25,7 +25,7 @@ class RenderTests(unittest.TestCase):
             "CLAUDE_HAIKU": "claude-haiku-4-5",
             "GEMINI_PRO": "gemini-3.1-pro-preview",
             "GEMINI_FLASH": "gemini-3-flash-preview",
-            "OPENAI_CODING": "gpt-5.3-codex",
+            "OPENAI_MAIN": "gpt-5.3-codex",
             "CODEX_CLI_VERSION": "^2",
             "CURSOR_AGENT_CLI_VERSION": "^0",
         }
@@ -81,7 +81,7 @@ class EndToEndTests(unittest.TestCase):
                 "CLAUDE_HAIKU=claude-haiku-4-5\n"
                 "GEMINI_PRO=gemini-3.1-pro-preview\n"
                 "GEMINI_FLASH=gemini-3-flash-preview\n"
-                "OPENAI_CODING=gpt-5.3-codex\n"
+                "OPENAI_MAIN=gpt-5.3-codex\n"
                 "CODEX_CLI_VERSION=^2\n"
                 "CURSOR_AGENT_CLI_VERSION=^0\n"
             )
@@ -110,7 +110,7 @@ class EndToEndTests(unittest.TestCase):
             registry_path.write_text(
                 "CLAUDE_OPUS=claude-opus-4-7\n"
                 "CLAUDE_SONNET=s\nCLAUDE_HAIKU=h\n"
-                "GEMINI_PRO=g\nGEMINI_FLASH=gf\nOPENAI_CODING=oc\n"
+                "GEMINI_PRO=g\nGEMINI_FLASH=gf\nOPENAI_MAIN=oc\n"
                 "CODEX_CLI_VERSION=c\nCURSOR_AGENT_CLI_VERSION=cc\n"
             )
             agents_md = tmp_path / "AGENTS.md"
@@ -133,7 +133,7 @@ class EndToEndTests(unittest.TestCase):
             registry_path = tmp_path / "r.env"
             registry_path.write_text(
                 "CLAUDE_OPUS=claude-opus-4-7\nCLAUDE_SONNET=s\nCLAUDE_HAIKU=h\n"
-                "GEMINI_PRO=g\nGEMINI_FLASH=gf\nOPENAI_CODING=oc\n"
+                "GEMINI_PRO=g\nGEMINI_FLASH=gf\nOPENAI_MAIN=oc\n"
                 "CODEX_CLI_VERSION=c\nCURSOR_AGENT_CLI_VERSION=cc\n"
             )
             agents_md = tmp_path / "AGENTS.md"

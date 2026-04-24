@@ -63,14 +63,18 @@ Die maschinenlesbaren Assertions stehen in `configs/BASELINE.assertions.json` di
 
 ## Codex (`configs/codex/config.toml`)
 
+> **Schema-Hinweis**: Codex-`config.toml` nutzt **top-level Keys**, keine TOML-Sections.
+> Referenz: [`openai/codex → codex-rs/core/config.schema.json`](https://github.com/openai/codex/blob/main/codex-rs/core/config.schema.json).
+> `[model]` / `[sandbox]`-Sections laden **nicht** (`invalid type: map, expected a string`).
+
 | Key | Soll-Wert | Warum |
 |---|---|---|
-| `[model].name` | siehe `MODEL_REGISTRY.md` (aktuell `gpt-5`) | AGENTS.md §11 |
-| `[model].effort` | `"medium"` | Balance Latency↔Qualität; Review-Tasks brauchen kein `"high"` |
-| `[sandbox].mode` | `"workspace-write"` | Codex darf im Projekt schreiben, nichts außerhalb |
-| `[sandbox].approval` | `"never"` | Rule 0 kompatibel; Sandbox-Boundary schützt |
-| `[project_doc].max_bytes` | `65536` | Reicht für AGENTS.md + projektspezifische Ergänzung |
-| `[project_doc].fallback_filenames` | enthält `AGENTS.md`, `CODEX.md` | AGENTS.md als Cross-CLI-Konvention |
+| `model` | siehe `MODEL_REGISTRY.md` `OPENAI_MAIN` (aktuell `gpt-5.4`, künftig höher) | AGENTS.md §11; GPT-5-Familie integriert Reasoning via `model_reasoning_effort` |
+| `model_reasoning_effort` | `"medium"` | Balance Latency↔Qualität; Review-Tasks brauchen kein `"high"` (enum: none/minimal/low/medium/high/xhigh) |
+| `sandbox_mode` | `"workspace-write"` | Codex darf im Projekt schreiben, nichts außerhalb (enum: read-only/workspace-write/danger-full-access) |
+| `approval_policy` | `"never"` | Rule 0 kompatibel; Sandbox-Boundary schützt (enum: untrusted/on-failure/on-request/never/object) |
+| `project_doc_max_bytes` | `65536` | Reicht für AGENTS.md + projektspezifische Ergänzung |
+| `project_doc_fallback_filenames` | enthält `AGENTS.md`, `CODEX.md` | AGENTS.md als Cross-CLI-Konvention |
 
 ---
 
@@ -86,7 +90,7 @@ Die maschinenlesbaren Assertions stehen in `configs/BASELINE.assertions.json` di
 |---|---|---|
 | Gemini | `general.model` | `GEMINI_PRO` |
 | Gemini | `general.flashModel` | `GEMINI_FLASH` |
-| Codex | `[model].name` | `OPENAI_CODING` |
+| Codex | `model` | `OPENAI_MAIN` |
 
 **Nicht gemappt** (bewusst):
 - **Claude**: Config nutzt Alias `opus` — Claude Code resolved das selbst zur aktuellen Opus-Version (aktuell 4.7).

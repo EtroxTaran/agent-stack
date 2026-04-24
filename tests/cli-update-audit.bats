@@ -68,13 +68,13 @@ teardown() {
 @test "audit erkennt Wert-Drift in Fixture-Config" {
     cp -r "${REPO_ROOT}/configs" "${TMPDIR_TEST}/configs"
     cp -r "${REPO_ROOT}/scripts" "${TMPDIR_TEST}/scripts"
-    # Ändere codex model.effort auf unerwarteten Wert
-    sed -i 's/effort = "medium"/effort = "high"/' \
+    # Ändere codex model_reasoning_effort auf unerwarteten Wert
+    sed -i 's/model_reasoning_effort = "medium"/model_reasoning_effort = "high"/' \
         "${TMPDIR_TEST}/configs/codex/config.toml"
 
     run "${TMPDIR_TEST}/scripts/audit-cli-settings.sh"
     [ "$status" -eq 1 ]
-    [[ "$output" == *"effort"* ]]
+    [[ "$output" == *"model_reasoning_effort"* ]]
     [[ "$output" == *"soll='medium'"* ]]
 }
 
@@ -97,13 +97,14 @@ teardown() {
     cp -r "${REPO_ROOT}/configs" "${TMPDIR_TEST}/configs"
     cp -r "${REPO_ROOT}/scripts" "${TMPDIR_TEST}/scripts"
     # Codex-Config auf Alias herunterziehen
-    sed -i 's/name = "gpt-5.3-codex"/name = "gpt-5"/' \
+    # Codex-Config auf reinen Alias herunterziehen (top-level `model`, kein [section])
+    sed -i 's/^model = .*/model = "gpt-5"/' \
         "${TMPDIR_TEST}/configs/codex/config.toml"
     # Fake-Registry mit spezifischerem Modell
     mkdir -p "${TMPDIR_TEST}/fake-openclaw/workspace"
     cat > "${TMPDIR_TEST}/fake-openclaw/workspace/MODEL_REGISTRY.md" <<'EOF'
 # MODEL_REGISTRY.md
-OPENAI_CODING=gpt-5.3-codex
+OPENAI_MAIN=gpt-5.3-codex
 GEMINI_PRO=gemini-3.1-pro-preview
 GEMINI_FLASH=gemini-3-flash-preview
 EOF
@@ -120,7 +121,7 @@ EOF
     cp -r "${REPO_ROOT}/scripts" "${TMPDIR_TEST}/scripts"
     mkdir -p "${TMPDIR_TEST}/fake-openclaw/workspace"
     cat > "${TMPDIR_TEST}/fake-openclaw/workspace/MODEL_REGISTRY.md" <<'EOF'
-OPENAI_CODING=gpt-5
+OPENAI_MAIN=gpt-5
 GEMINI_PRO=gemini-3.1-pro-preview
 GEMINI_FLASH=gemini-3-flash-preview
 EOF

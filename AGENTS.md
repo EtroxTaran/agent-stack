@@ -230,7 +230,7 @@ Details: `github.com/EtroxTaran/ai-review-pipeline`.
 ### LLM-Modell-Versionen (aus Registry)
 
 - **Claude**: Opus `claude-opus-4-7` · Sonnet `claude-sonnet-4-6` · Haiku `claude-haiku-4-5`
-- **OpenAI**: Coding `gpt-5.3-codex`
+- **OpenAI (Codex-CLI Main)**: `(nicht gepinnt)`
 - **Gemini**: Pro `gemini-3.1-pro-preview` · Flash `gemini-3-flash-preview`
 - **CLI-Pins**: Codex `latest` · Cursor-Agent `latest`
 
@@ -324,6 +324,24 @@ Aktuelle Pins siehe §8 Reviewer-Charter (auto-generiert aus
 Weekly-Drift-Check [`.github/workflows/model-registry-drift-check.yml`](.github/workflows/model-registry-drift-check.yml)
 prüft Montag 08:00 UTC automatisch und öffnet PR bei Drift.
 
+Orientierungswerte (Stand 2026-04-24 — immer via Pre-Suggestion-Check unten verifizieren):
+
+- **Claude**: `claude-opus-4-7` · `claude-sonnet-4-6` · `claude-haiku-4-5`
+- **OpenAI**: `gpt-5.5` (released 2026-04-23 — inkl. `gpt-5.5-thinking`, `gpt-5.5-pro`). `gpt-5` ist Vor-Version, nicht deprecated aber nicht mehr Default.
+- **Gemini**: `gemini-2.5-pro` ist möglicherweise veraltet (Hinweise auf Gemini 3.1 Pro) — **vor Nutzung verifizieren** via `python3 ~/.openclaw/workspace/scripts/research.py "latest Gemini Pro model 2026"`. `gemini-2.0-flash` weiterhin gültig.
+
+### Embedding-Modelle (Stand 2026-04-24)
+
+> Vor jeder Embedding-Empfehlung: Pre-Suggestion-Check unten durchführen. Diese Tabelle ist ein Ausgangspunkt, keine Garantie.
+
+- **Gemini `gemini-embedding-2`** (GA 2026-04-22, 3072-dim, omnimodal: Text+Image+Video+Audio+PDF) — Default für Multi-Modal + Google-Stack-Alignment.
+- **Voyage `voyage-4`** ($0.06/1M, 1024-dim, Text) — Anthropic-Partner, beste Preis/Leistung für Text-only.
+- **Ollama `bge-m3`** (SOTA open-weight, 1024-dim, 100+ Sprachen inkl. DE+EN) — Default für Privacy-sensitive + Self-Hosted.
+- **OpenAI `text-embedding-3-large`** (3072-dim) — noch gültig, kein Nachfolger gemerged.
+- **Jina `jina-embeddings-v4`** (Preview), **Cohere `embed-v4`** — für Spezialfälle.
+
+`gemini-embedding-001` ist abgelöst — nicht mehr empfehlen.
+
 ### Version-Check vor Build
 
 1. Libraries: `use context7` im Prompt → aktuelle API-Docs.
@@ -333,6 +351,20 @@ prüft Montag 08:00 UTC automatisch und öffnet PR bei Drift.
 
 ❌ `claude-opus-4-5` wenn `-4-7` existiert · ❌ `npm install react@18` ohne Check
 ✅ `@latest`, `use context7`
+
+### 🔴 Pre-Suggestion-Check für Modell-Vorschläge (Rule-3-Verstärkung)
+
+Bevor du **irgendein** konkretes Modell (LLM oder Embedding) namentlich empfiehlst oder in Code/Docs einträgst:
+
+1. `python3 ~/.openclaw/workspace/scripts/research.py "latest <provider> <model-class> 2026"` ODER
+2. Perplexity mit `recency: month` + Fachbegriffe, ODER
+3. Context7 für offizielle Docs-Pages des Providers.
+
+**Dann** erst Vorschlag. **Niemals** aus Trainingsdaten-Erinnerung. Auch nicht wenn du dir "sicher" bist.
+
+*Failure-Pattern 2026-04-24*: Empfehlung `gemini-embedding-001` ohne Check, obwohl `gemini-embedding-2` zwei Tage vorher GA ging. Zwei-Tage-Stale-Knowledge ist normal, nicht Ausnahme.
+
+Enforcement: Verletzung → Lessons-Learned-Eintrag + sofortige Korrektur + Memory-Update.
 
 ---
 
