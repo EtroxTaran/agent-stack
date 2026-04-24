@@ -1,62 +1,54 @@
-# .ai-review/config.yaml — per-project override for the AI-Review-Pipeline
-# Defaults come from the ai-review-pipeline package; overrides here.
+# AI-Review-Pipeline — Template-Config für neue Projekte.
+# Bootstrap via `scripts/ai-init-project.sh <project-dir>`.
+#
+# Best Practice (Phase 5): Modell-Versionen werden NICHT hier gepinnt.
+# Single-Source-of-Truth ist die committed Registry im Pipeline-Repo:
+# https://github.com/EtroxTaran/ai-review-pipeline/blob/main/src/ai_review_pipeline/registry/MODEL_REGISTRY.env
+# Override-Pfad: AI_REVIEW_MODEL_<ROLE> Env-Var (pro Workflow-Run) oder
+# ~/.openclaw/workspace/MODEL_REGISTRY.md (lokales Dev-Testing).
+#
+# Schema: https://github.com/EtroxTaran/ai-review-pipeline/blob/main/schema/config.schema.yaml
 
-version: 1
+version: "1.0"
 
 stages:
-  code:
+  code_review:
     enabled: true
-    reviewer: codex
-    model: gpt-5.4
-  code-cursor:
+    blocking: true
+  cursor_review:
     enabled: true
-    reviewer: cursor
-    model: composer-2
+    blocking: true
   security:
     enabled: true
-    reviewer: gemini
-    model: gemini-2.5-pro
+    blocking: true
   design:
     enabled: true
-    reviewer: claude
-    model: claude-opus-4-7
-    skip_when_no_ui: true
+    blocking: true
+    skip_if_no_ui_changes: true
   ac_validation:
     enabled: true
-    reviewer: codex           # Primary
-    second_opinion: claude
-    model: gpt-5.4
-    fail_closed_on_missing_issue: true
+    blocking: true
+    min_coverage: 1.0
+    # judge_model + second_opinion_model: kommen aus Registry
+    # (resolve_model "ac_judge" + "ac_second_opinion"). Hier bewusst nicht
+    # gepinnt, um Drift zu vermeiden.
 
 consensus:
-  confidence_weighted: true
-  thresholds:
-    success: 8                # avg >= 8 -> success
-    soft: 5                   # 5 <= avg < 8 -> Nachfrage
-    # else -> failure
-
-fix_loops:
-  in_stage:
-    enabled: true
-    max_iter: 3
-    score_trend_gate: true
-  cross_stage:
-    enabled: true
-    max_files: 10
-    path_whitelist:
-      - "src/**"
-      - "app/**"
-      - "plugins/**/src/**"
+  success_threshold: 8
+  soft_threshold: 5
+  fail_closed_on_missing_stage: true
+  confidence_weighting: true
 
 notifications:
   target: discord
   discord:
-    channel_id: ""            # fill via `gh secret set DISCORD_CHANNEL_ID`
+    # Channel-ID via ~/.config/ai-workflows/env. Beispiel:
+    # channel_id: "${DISCORD_CHANNEL_<REPO_NAME>}"
+    channel_id: ""
     mention_role: "@here"
     sticky_message: true
 
 waivers:
-  security_waiver:
-    min_reason_length: 30
-  ac_waiver:
-    min_reason_length: 30
+  min_reason_length: 30
+  allowed_labels:
+    - pipeline-bootstrap   # nur für die ersten 1-2 PRs — danach entfernen

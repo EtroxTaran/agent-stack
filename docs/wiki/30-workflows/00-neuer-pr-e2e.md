@@ -93,14 +93,14 @@ Jeder Job schreibt **genau einen** Status pro PR-HEAD-SHA:
 
 | Job | Context | Mögliche States |
 |---|---|---|
-| code-review | `ai-review/code` (v1) oder `ai-review-v2/code` | success / pending / failure |
-| cursor-review | `ai-review/code-cursor` oder `ai-review-v2/code-cursor` | success / pending / failure / success-with-note="rate-limit" |
-| security-review | `ai-review/security` oder `ai-review-v2/security` | success / pending / failure |
-| design-review | `ai-review/design` oder `ai-review-v2/design` | success / pending / success-with-note="skipped" |
-| ac-validate | `ai-review/ac-validation` oder `ai-review-v2/ac-validation` | success / pending / failure |
-| consensus | `ai-review/consensus` oder `ai-review-v2/consensus` | success / pending / failure |
+| code-review | `ai-review/code` | success / pending / failure |
+| cursor-review | `ai-review/code-cursor` | success / pending / failure / success-with-note="rate-limit" |
+| security-review | `ai-review/security` | success / pending / failure |
+| design-review | `ai-review/design` | success / pending / success-with-note="skipped" |
+| ac-validate | `ai-review/ac-validation` | success / pending / failure |
+| consensus | `ai-review/consensus` | success / pending / failure |
 
-Der **Context-Präfix** ist entscheidend: `ai-review/*` ist v1 Legacy (required), `ai-review-v2/*` ist v2 Shadow (non-required in Phase 4). Details: [`70-reference/20-status-contexts.md`](../70-reference/20-status-contexts.md).
+Das Präfix `ai-review/*` ist produktiv und required. Der historische Shadow-Präfix `ai-review-v2/*` existiert seit dem Phase-5-Cutover (2026-04-24) nicht mehr. Details: [`70-reference/20-status-contexts.md`](../70-reference/20-status-contexts.md).
 
 ### Die Consensus-Aggregation im Detail
 
@@ -187,7 +187,7 @@ Typische Abweichungen vom Happy-Path:
 - [Consensus-Scoring](../10-konzepte/10-consensus-scoring.md) — wie aggregiert wird
 - [Button-Click-Callback](10-button-click-callback.md) — was beim Reviewer-Klick passiert
 - [Eskalation nach 30 Min](20-escalation-30-min.md) — wenn die Rückfrage unbeantwortet bleibt
-- [Cutover Phase 4 → 5](40-cutover-phase-4-zu-5.md) — der Migrations-Flow
+- [Shadow-zu-Produktion Cutover](40-shadow-zu-produktion-cutover.md) — der Migrations-Flow
 
 ## Quelle der Wahrheit (SoT)
 

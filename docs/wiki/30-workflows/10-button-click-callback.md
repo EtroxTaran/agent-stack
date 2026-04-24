@@ -279,7 +279,7 @@ Details: [`60-tests/10-callback-unit-tests.md`](../60-tests/10-callback-unit-tes
 - [n8n Workflows](../20-komponenten/30-n8n-workflows.md) — der Callback-Workflow-Ort
 - [Soft-Consensus & Nachfrage](../10-konzepte/40-nachfrage-soft-consensus.md) — wann die Buttons erscheinen
 - [Callback-Unit-Tests](../60-tests/10-callback-unit-tests.md) — die 13 Test-Cases
-- [Cutover Phase 4 → 5](40-cutover-phase-4-zu-5.md) — wenn die Stubs zu echten Actions werden
+- [Shadow-zu-Produktion Cutover](40-shadow-zu-produktion-cutover.md) — wenn die Stubs zu echten Actions werden
 
 ## Quelle der Wahrheit (SoT)
 

@@ -74,7 +74,7 @@ Alle Channel-IDs liegen als Env-Vars im Runner-Env `~/.config/ai-workflows/env`.
 |---|---|
 | `DISCORD_ALERTS_CHANNEL_ID` | Gemeinsamer Alerts-Kanal, empfängt `@here`-Mentions bei Eskalationen |
 | `DISCORD_CHANNEL_AI_PORTAL` | Regulärer Review-Kanal für ai-portal-PRs |
-| `DISCORD_CHANNEL_AI_PORTAL_SHADOW` | Shadow-Kanal für ai-portal (Phase 4) |
+| `DISCORD_CHANNEL_AI_PORTAL_SHADOW` | Shadow-Kanal für ai-portal (historisch; Phase 4 bis 2026-04-24). Bleibt für künftige Experimente. |
 | `DISCORD_CHANNEL_AI_REVIEW_PIPELINE` | Regulärer Review-Kanal für ai-review-pipeline-PRs (Dogfood) |
 | `DISCORD_CHANNEL_AI_REVIEW_PIPELINE_SHADOW` | Shadow-Kanal für ai-review-pipeline |
 | `DISCORD_CHANNEL_AGENT_STACK` | Regulärer Review-Kanal für agent-stack-PRs |

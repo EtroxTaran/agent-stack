@@ -93,7 +93,7 @@ mindmap
 |---|---|
 | [AI-Review-Pipeline](10-konzepte/00-ai-review-pipeline.md) | Die 5 Stages: Code, Code-Cursor, Security, Design, AC-Validation |
 | [Consensus-Scoring](10-konzepte/10-consensus-scoring.md) | Bewertungssystem: avg ≥ 8 = success, 5–7 = soft, < 5 = fail |
-| [Shadow-Mode vs. Cutover](10-konzepte/20-shadow-vs-cutover.md) | Phase 4 (nicht-blockierend) vs. Phase 5 (required-check) |
+| [Shadow-Mode vs. Cutover](10-konzepte/20-shadow-vs-cutover.md) | Shadow-Validierung (Phase 4) vs. produktive Pipeline (Phase 5; für ai-portal seit 2026-04-24) |
 | [Waiver-System](10-konzepte/30-waiver-system.md) | Security- und AC-Waiver mit Audit-Trail |
 | [Soft-Consensus & Nachfrage](10-konzepte/40-nachfrage-soft-consensus.md) | Wann manuelle Freigabe nötig ist, Eskalation |
 
@@ -119,7 +119,7 @@ mindmap
 | [Button-Click-Callback](30-workflows/10-button-click-callback.md) | Discord-Button → GitHub-Action |
 | [Eskalation nach 30 Min](30-workflows/20-escalation-30-min.md) | Stale Nachfrage → @here-Alert |
 | [Auto-Fix-Loop](30-workflows/30-auto-fix-loop.md) | Findings → automatischer Fix → erneutes Review |
-| [Cutover Phase 4 → 5](30-workflows/40-cutover-phase-4-zu-5.md) | Shadow-Modus zu Required-Check migrieren |
+| [Shadow-zu-Produktion Cutover](30-workflows/40-shadow-zu-produktion-cutover.md) | Playbook: Shadow-Modus zu Required-Check migrieren (für ai-portal abgeschlossen) |
 
 ### [40 — Setup](40-setup/) · *How-to*
 

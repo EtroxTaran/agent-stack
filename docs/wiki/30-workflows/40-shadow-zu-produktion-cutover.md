@@ -1,6 +1,8 @@
-# Cutover Phase 4 → 5 — Shadow in Produktion überführen
+# Shadow-zu-Produktion Cutover — Playbook
 
-> **TL;DR:** Der Wechsel von der parallel-laufenden Shadow-Pipeline zur produktiven Pipeline ist eine sorgfältig geordnete Sequenz von fünf Schritten. Zuerst muss die Shadow-Pipeline über mehrere Wochen beweisen, dass sie dieselben Urteile fällt wie die Legacy-Pipeline. Dann werden die Stages von `blocking: false` auf `blocking: true` umgeschaltet, der Discord-Kanal vom Shadow- auf den Produktiv-Kanal gewechselt, die Branch-Protection in GitHub umgestellt, und zuletzt die alte Pipeline abgeschaltet. Der Rollback ist bis Schritt 4 einfach — einfach die vorigen Konfigurationen wiederherstellen. Nach Schritt 5 (alte Pipeline gelöscht) wird's aufwändiger.
+> **Status:** Für ai-portal am **2026-04-24 abgeschlossen** (siehe [Changelog](../80-historie/00-changelog.md)). Diese Seite dient als generisches Playbook für künftige Projekte, die von Shadow- in den Produktiv-Modus wechseln.
+
+> **TL;DR:** Der Wechsel von einer parallel-laufenden Shadow-Pipeline zur produktiven Pipeline ist eine sorgfältig geordnete Sequenz von fünf Schritten. Zuerst muss die Shadow-Pipeline über mehrere Wochen beweisen, dass sie dieselben Urteile fällt wie die Legacy-Pipeline. Dann werden die Stages von `blocking: false` auf `blocking: true` umgeschaltet, der Discord-Kanal vom Shadow- auf den Produktiv-Kanal gewechselt, die Branch-Protection in GitHub umgestellt, und zuletzt die alte Pipeline abgeschaltet. Der Rollback ist bis Schritt 4 einfach — einfach die vorigen Konfigurationen wiederherstellen. Nach Schritt 5 (alte Pipeline gelöscht) wird's aufwändiger.
 
 ## Wie es funktioniert
 
