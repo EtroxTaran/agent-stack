@@ -75,12 +75,16 @@ agent-stack/
 
 ## Weiterführend
 
-- Plan für die Implementierung: Phasen 1–5 in
-  `~/.claude/plans/reports-projects-ai-portal-docs-v2-40-a-iridescent-flask.md`
-- `ai-review-pipeline` — eigenes Repo (pip-Package + `gh ai-review`
-  Extension), ab Phase 3
+- [`docs/wiki/`](docs/wiki/) — vollständiges Wiki (Konzepte, Komponenten,
+  Workflows, Setup-Runbooks, Reference). Einstieg:
+  [`docs/wiki/00-ueberblick.md`](docs/wiki/00-ueberblick.md).
+- [`docs/wiki/80-historie/00-changelog.md`](docs/wiki/80-historie/00-changelog.md) —
+  Chronologie der Entwicklung inkl. Phase-5-Cutover (2026-04-24).
+- [`ai-review-pipeline`](https://github.com/EtroxTaran/ai-review-pipeline) —
+  eigenes Repo (pip-Package + `gh ai-review` Extension), produktiv seit
+  Phase-5-Cutover.
 - OpenClaw Workspace — Nathan-Identität + Sub-Workspaces (parallel,
-  referenziert von AGENTS.md)
+  referenziert von AGENTS.md §1).
 
 ## Lizenz
 
