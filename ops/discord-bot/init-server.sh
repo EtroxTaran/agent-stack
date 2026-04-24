@@ -48,11 +48,53 @@ python3 -c "import requests" 2>/dev/null || die "python requests fehlt — 'pip 
 
 readonly PROJECTS="${DISCORD_PROJECTS:-$PROJECTS_DEFAULT}"
 
+# --- CLI-Args: --add-channel <name> (mehrfach nutzbar) --------------------
+EXTRA_CHANNELS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --add-channel)
+            [[ -z "${2:-}" ]] && die "--add-channel braucht einen Channel-Namen"
+            EXTRA_CHANNELS+=("$2")
+            shift 2
+            ;;
+        --help|-h)
+            cat <<EOF
+Usage: $(basename "$0") [--add-channel <name>]...
+
+Optionen:
+  --add-channel NAME   Zusätzlicher Standalone-Channel (z.B. agent-stack-health).
+                       Mehrfach angebbar: --add-channel a --add-channel b
+                       Ohne Flag: Default-Projekt-Setup (\$DISCORD_PROJECTS).
+
+Environment (Secrets-SoT: \$AI_WORKFLOWS_ENV):
+  DISCORD_BOT_TOKEN    — Bot-Token (required)
+  DISCORD_GUILD_ID     — Guild-ID (required)
+  DISCORD_PROJECTS     — CSV-Override des Default-Projekt-Scaffold
+  DRY_RUN=1            — Preview-Mode, kein API-Write
+EOF
+            exit 0
+            ;;
+        *)
+            die "Unbekannter Parameter: $1 (siehe --help)"
+            ;;
+    esac
+done
+
 # --- Provisioning ---------------------------------------------------------
+# Mit --add-channel nur Extra-Channels anlegen, ohne Default-Projekt-Scaffold
+# (damit --add-channel foo nicht versehentlich alle Default-Projekte touchiert).
+PROJECTS_TO_USE="$PROJECTS"
+if [[ ${#EXTRA_CHANNELS[@]} -gt 0 ]]; then
+    PROJECTS_TO_USE=""
+fi
+
 echo ">>> Initial Discord-Setup startet"
-echo "    Guild:    ${DISCORD_GUILD_ID}"
-echo "    Projekte: ${PROJECTS}"
-echo "    Modus:    $([[ "${DRY_RUN:-0}" == "1" ]] && echo 'DRY-RUN' || echo 'LIVE')"
+echo "    Guild:           ${DISCORD_GUILD_ID}"
+echo "    Projekte:        ${PROJECTS_TO_USE:-<keine, nur Extra-Channels>}"
+if [[ ${#EXTRA_CHANNELS[@]} -gt 0 ]]; then
+    echo "    Extra-Channels:  ${EXTRA_CHANNELS[*]}"
+fi
+echo "    Modus:           $([[ "${DRY_RUN:-0}" == "1" ]] && echo 'DRY-RUN' || echo 'LIVE')"
 echo ""
 
 extra_args=()
@@ -65,10 +107,14 @@ if [[ -n "${DISCORD_CATEGORY_NAME:-}" ]]; then
     extra_args+=("--category" "$DISCORD_CATEGORY_NAME")
 fi
 
+for ch in "${EXTRA_CHANNELS[@]}"; do
+    extra_args+=("--extra-channel" "$ch")
+done
+
 DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" \
 python3 "$PROVISION_PY" \
     --guild-id "$DISCORD_GUILD_ID" \
-    --projects "$PROJECTS" \
+    --projects "$PROJECTS_TO_USE" \
     "${extra_args[@]}"
 
 echo ""
